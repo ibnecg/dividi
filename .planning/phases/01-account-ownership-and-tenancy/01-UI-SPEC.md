@@ -1,10 +1,11 @@
 ---
 phase: 1
 slug: account-ownership-and-tenancy
-status: draft
+status: approved
 shadcn_initialized: false
 preset: b0
 created: 2026-08-30
+reviewed_at: 2026-08-31T00:17:45Z
 ---
 
 # Phase 1 - UI Design Contract
@@ -29,6 +30,7 @@ Use the official shadcn Button, Input, Label, Card, Dropdown Menu, Avatar, and S
 ### Layout and Interaction
 
 - Auth, verification, password-reset, and organization-setup pages use one centered form surface, `width: min(100% - 32px, 420px)`, with a white card, 1px neutral border, 8px radius, and 24px padding. At `768px` and above, increase card padding to 32px; do not change type sizes by viewport.
+- The page title and current form are the primary visual anchor on auth, verification, reset, and organization-setup screens; secondary helper text and recovery links must not compete with the active form.
 - The protected workspace is a quiet operational shell: a 64px header with organization name at left and the owner avatar/account menu at right. Constrain the inner header to 1200px and use 16px horizontal page padding on small screens, 32px from `768px` upward.
 - The Phase 1 workspace body contains only the organization name, the signed-in owner identity, and a short ready-state. It does not show campaign, item, donation, settings, or coming-soon navigation.
 - The account menu trigger is an avatar with an accessible label, opens on click/keyboard activation, shows the owner name and email as non-actionable header text, and contains only `Sign out`. Escape closes it and focus returns to the trigger.
@@ -108,7 +110,7 @@ All user-facing product copy is Brazilian Portuguese. Use sentence case, direct 
 - Password recovery accepts email only. Password update accepts `Nova senha` and `Confirmar nova senha`. Email change, MFA, profile editing, and account recovery beyond reset are absent.
 - The organization setup form has one required `Nome da organização` field. It cannot accept or show owner ID, role, organization ID, contact details, PIX details, or public profile fields.
 - Show inline validation beneath the associated field after blur or submit. Give the field `aria-invalid`, connect the message with `aria-describedby`, and move focus to the first invalid field after submit. A form-level alert appears above the fields only for non-field failures.
-- During submission, retain layout and entered non-secret values, disable the submit button and duplicate-submission controls, set `aria-busy`, and replace only the CTA label with `Criando conta...`, `Entrando...`, `Criando organização...`, `Enviando...`, or `Salvando...` as applicable.
+- During submission, retain layout and entered non-secret values, disable the submit button and duplicate-submission controls, set `aria-busy`, and replace only the CTA label with `Criando conta...`, `Acessando seu espaço...`, `Criando organização...`, `Enviando link de redefinição...`, or `Salvando nova senha...` as applicable.
 - Initial route decisions use an unobtrusive skeleton that matches the form card or header dimensions. Do not render a full-page spinner. If the server cannot load a protected route, show the documented generic error or not-found state rather than stale private content.
 - On successful sign-up, route to the verify-email page. On confirmed sign-in, route users without an organization to setup and users with an organization to their workspace. On successful organization creation, route directly to that workspace. Do not let the user choose or switch organizations in Phase 1.
 - Render organization name, owner name, email, and all validation text as plain text. Limit organization name input to 120 characters; permit natural wrapping in body content and ellipsize it to one line in the header, with the full value available through a native tooltip or accessible label.
@@ -117,20 +119,36 @@ All user-facing product copy is Brazilian Portuguese. Use sentence case, direct 
 
 ## UI Considerations
 
-Applicable state considerations resolved: 10 covered, 0 backstop, 0 unresolved.
+Applicable state considerations resolved: 26 covered, 0 backstop, 0 unresolved.
 
 | Category | Element(s) | Status | Resolution / Reason |
 |----------|------------|--------|---------------------|
-| empty | Sign-up, sign-in, recovery, password-update, and organization-setup forms | ✅ covered | Initial forms are intentionally blank; labels remain visible and required errors appear only after blur or submit. |
-| loading | Auth and organization forms | ✅ covered | Submission uses the documented stable in-button progress label, disabled duplicate controls, `aria-busy`, and no layout shift. |
-| error | Auth and organization forms | ✅ covered | Field errors appear beneath the applicable input, non-field failures use the documented generic alert, and secrets are never re-rendered. |
-| partial | Auth and organization forms after a failed submission | ✅ covered | Safe entered values remain available for correction; password fields reset blank and focus moves to the first invalid field. |
-| long-text | Form labels, helper text, validation messages, and organization name | ✅ covered | Text wraps within the card; long organization names ellipsize only in the fixed header and retain an accessible full name. |
-| loading | Protected workspace route and account header | ✅ covered | A dimension-matched skeleton is shown while session and RLS-scoped organization data resolve; no private fallback content is rendered. |
-| error | Protected workspace route | ✅ covered | Server failure renders the documented generic error state; a foreign or absent organization result renders the generic not-found state. |
-| overflow | Workspace header and account menu | ✅ covered | The header keeps one line and truncates the organization name; the menu has a fixed minimum width, wraps owner email, and never extends past the viewport. |
-| long-text | Not-found and workspace static content | ✅ covered | Copy wraps without clipping; action buttons keep their 44px minimum target and text may wrap to two lines on narrow screens. |
-| zero-one-many | Organization selector | ✅ covered | The Phase 1 UI supports exactly one organization, so no organization collection or selector is rendered. |
+| empty | Auth and password forms | covered | Auth and password forms render as intentionally blank forms with visible labels and helper copy; required validation appears only after blur or submit. |
+| loading | Auth and password forms | covered | Auth submissions disable duplicate controls, set `aria-busy`, retain layout, and replace only the active CTA label with contextual progress copy. |
+| error | Auth and password forms | covered | Auth failures use inline field errors or the documented generic form alert; raw provider errors and password values are never rendered. |
+| partial | Auth and password forms | covered | After failed auth submissions, safe non-secret field values remain available for correction while password fields reset blank and focus moves to the first invalid field. |
+| overflow | Auth and password forms | covered | Form labels, helper copy, validation messages, links, and buttons wrap within the 420px form surface without clipping or horizontal scroll. |
+| long-text | Auth and password forms | covered | Long email addresses, validation text, and recovery/link copy wrap within the card; controls preserve a minimum 44px target. |
+| empty | Organization setup form | covered | The setup surface begins with one empty `Nome da organização` field, visible label, helper copy, and the `Criar organização` CTA. |
+| loading | Organization setup form | covered | Organization creation disables duplicate controls, sets `aria-busy`, keeps the form dimensions stable, and uses the contextual `Criando organização...` progress label. |
+| error | Organization setup form | covered | Setup failures use field validation for the organization name or the documented generic form alert without exposing organization IDs or tenant details. |
+| partial | Organization setup form | covered | A failed setup submission preserves the entered organization name for correction unless it is invalid in a way that must be cleared by server policy. |
+| overflow | Organization setup form | covered | The setup form wraps helper copy and validation text within the card; no horizontal scrolling is allowed. |
+| long-text | Organization setup form | covered | Organization names are limited to 120 characters, wrap in body content, and are only ellipsized in fixed header contexts with a full accessible label. |
+| empty | Protected workspace shell and account header | covered | When no authorized organization exists, the protected route renders setup or the generic not-found state rather than empty private chrome. |
+| loading | Protected workspace shell and account header | covered | Protected route decisions show a dimension-matched skeleton for the form card or header while session and RLS-scoped organization data resolve. |
+| error | Protected workspace shell and account header | covered | Protected route load failures render the documented generic error state; absent or foreign organization results render the generic not-found state. |
+| populated | Protected workspace shell and account header | covered | The normal workspace shell shows a 64px header with organization name, owner avatar menu, and only the Phase 1 ready-state content. |
+| overflow | Protected workspace shell and account header | covered | The header stays one line, truncates the organization name, constrains content to 1200px, and keeps the account menu within the viewport. |
+| long-text | Protected workspace shell and account header | covered | Long organization names and owner emails truncate or wrap according to their container while preserving full values via accessible labels or native `title` where needed. |
+| empty | Workspace ready and not-found static content | covered | Because Phase 1 has no campaign, item, or donation collections, those collection areas are not rendered; the only empty product state is organization setup. |
+| loading | Workspace ready and not-found static content | covered | Static ready and not-found content does not show independent loading; route-level loading is covered by the protected shell skeleton. |
+| error | Workspace ready and not-found static content | covered | Static ready content is replaced by the documented generic error or not-found state when authorization or loading fails. |
+| populated | Workspace ready and not-found static content | covered | The populated workspace body contains only organization name, signed-in owner identity, and the ready-state copy. |
+| partial | Workspace ready and not-found static content | covered | If owner or organization display data is incomplete, the UI shows the generic error/not-found route state rather than partial private content. |
+| overflow | Workspace ready and not-found static content | covered | Ready and not-found headings, body copy, action labels, organization name, and owner identity wrap without clipping; action buttons may wrap to two lines on narrow screens. |
+| zero-one-many | Workspace ready and not-found static content | covered | There is no organization selector and no campaign/item/donation collection in Phase 1; the UI supports exactly one owned organization workspace. |
+| long-text | Workspace ready and not-found static content | covered | Long static copy, organization name, owner name, and owner email wrap in content areas and are constrained in the header/menu rules. |
 
 ---
 
@@ -145,11 +163,11 @@ Applicable state considerations resolved: 10 covered, 0 backstop, 0 unresolved.
 
 ## Checker Sign-Off
 
-- [ ] Dimension 1 Copywriting: PASS
-- [ ] Dimension 2 Visuals: PASS
-- [ ] Dimension 3 Color: PASS
-- [ ] Dimension 4 Typography: PASS
-- [ ] Dimension 5 Spacing: PASS
-- [ ] Dimension 6 Registry Safety: PASS
+- [x] Dimension 1 Copywriting: PASS
+- [x] Dimension 2 Visuals: PASS
+- [x] Dimension 3 Color: PASS
+- [x] Dimension 4 Typography: PASS
+- [x] Dimension 5 Spacing: PASS
+- [x] Dimension 6 Registry Safety: PASS
 
-**Approval:** pending
+**Approval:** approved
