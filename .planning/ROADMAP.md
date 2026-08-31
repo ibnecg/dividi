@@ -29,7 +29,14 @@ Decimal phases appear between their surrounding integers in numeric order.
   1. A user can create an email/password account, log in, remain signed in after a browser refresh, and log out from private administration.
   2. A signed-in user can create an organization and enter its protected workspace.
   3. An organization owner cannot view or change another organization's campaigns or administrative data.
-**Plans**: TBD
+**Plans**: 5 plans
+
+Plans:
+- [ ] 01-01-PLAN.md — Verify suspicious and assumed package identities before installation.
+- [ ] 01-02-PLAN.md — Build the verified-account-to-RLS-workspace walking skeleton.
+- [ ] 01-03-PLAN.md — Prove tenancy RLS, grants, idempotency, and generated schema types.
+- [ ] 01-04-PLAN.md — Push the schema and complete persistent login, workspace, and logout.
+- [ ] 01-05-PLAN.md — Complete password recovery and all auth UI states.
 **UI hint**: yes
 
 ### Phase 2: Organizer Campaign Management
@@ -92,7 +99,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Account Ownership and Tenancy | 0/TBD | Not started | - |
+| 1. Account Ownership and Tenancy | 0/5 | Not started | - |
 | 2. Organizer Campaign Management | 0/TBD | Not started | - |
 | 3. Public Discovery and Campaign Trust | 0/TBD | Not started | - |
 | 4. PIX Donation and Confirmation | 0/TBD | Not started | - |
