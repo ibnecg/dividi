@@ -1,5 +1,4 @@
-import test from 'node:test';
-import assert from 'node:assert';
+import { test, expect } from 'vitest';
 import { createClient } from '@supabase/supabase-js';
 import crypto from 'node:crypto';
 
@@ -8,7 +7,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
 const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-test('auth flow (signup, signin, logout)', async (t) => {
+test('auth flow (signup, signin, logout)', async () => {
   const email = `test-${crypto.randomUUID()}@example.com`;
   const password = 'securepassword123';
   const name = 'Integration Test User';
@@ -24,16 +23,16 @@ test('auth flow (signup, signin, logout)', async (t) => {
     },
   });
 
-  assert.strictEqual(signUpError, null, 'Sign up should succeed');
-  assert.ok(signUpData.user, 'User should be created');
-  assert.ok(signUpData.session, 'Session should be created after signup (auto-confirm is on in local)');
+  expect(signUpError).toBeNull()
+  expect(signUpData.user).toBeDefined()
+  expect(signUpData.session).toBeDefined()
 
   // 2. Sign out
   const { error: signOutError } = await client.auth.signOut();
-  assert.strictEqual(signOutError, null, 'Sign out should succeed');
+  expect(signOutError).toBeNull();
 
   const { data: sessionDataAfterOut } = await client.auth.getSession();
-  assert.strictEqual(sessionDataAfterOut.session, null, 'Session should be null after sign out');
+  expect(sessionDataAfterOut.session).toBeNull();
 
   // 3. Sign in
   const { data: signInData, error: signInError } = await client.auth.signInWithPassword({
@@ -41,7 +40,8 @@ test('auth flow (signup, signin, logout)', async (t) => {
     password,
   });
 
-  assert.strictEqual(signInError, null, 'Sign in should succeed');
-  assert.ok(signInData.session, 'Session should be returned after sign in');
-  assert.strictEqual(signInData.user?.email, email, 'Email should match');
-});
+  expect(signInError).toBeNull()
+  expect(signInData.user).toBeDefined()
+  expect(signInData.session).toBeDefined()
+  expect(signInData.user?.email).toBe(email)
+})

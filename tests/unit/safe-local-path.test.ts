@@ -1,26 +1,25 @@
-import test from 'node:test'
-import assert from 'node:assert'
+import { test, expect } from 'vitest'
 import { safeLocalPath } from '../../src/lib/auth/safe-local-path'
 
 test('safeLocalPath returns valid local paths unchanged', () => {
-  assert.strictEqual(safeLocalPath('/dashboard'), '/dashboard')
-  assert.strictEqual(safeLocalPath('/settings/profile'), '/settings/profile')
-  assert.strictEqual(safeLocalPath('/'), '/')
+  expect(safeLocalPath('/dashboard')).toBe('/dashboard')
+  expect(safeLocalPath('/settings/profile')).toBe('/settings/profile')
+  expect(safeLocalPath('/')).toBe('/')
 })
 
 test('safeLocalPath falls back on external URLs', () => {
-  assert.strictEqual(safeLocalPath('http://example.com'), '/')
-  assert.strictEqual(safeLocalPath('https://example.com'), '/')
-  assert.strictEqual(safeLocalPath('//example.com'), '/')
+  expect(safeLocalPath('http://example.com')).toBe('/')
+  expect(safeLocalPath('https://example.com')).toBe('/')
+  expect(safeLocalPath('//example.com')).toBe('/')
 })
 
 test('safeLocalPath falls back on empty or null paths', () => {
-  assert.strictEqual(safeLocalPath(''), '/')
-  assert.strictEqual(safeLocalPath(null), '/')
-  assert.strictEqual(safeLocalPath(undefined), '/')
+  expect(safeLocalPath('')).toBe('/')
+  expect(safeLocalPath(null)).toBe('/')
+  expect(safeLocalPath(undefined)).toBe('/')
 })
 
 test('safeLocalPath uses custom fallback', () => {
-  assert.strictEqual(safeLocalPath('http://example.com', '/home'), '/home')
-  assert.strictEqual(safeLocalPath(null, '/home'), '/home')
+  expect(safeLocalPath('http://example.com', '/home')).toBe('/home')
+  expect(safeLocalPath(null, '/home')).toBe('/home')
 })
