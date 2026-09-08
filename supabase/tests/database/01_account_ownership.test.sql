@@ -6,8 +6,8 @@ select has_table('public', 'organizations', 'organizations table should exist');
 select has_table('public', 'organization_members', 'organization_members table should exist');
 
 -- RLS check
-select row_security_is_enforced('public', 'organizations', 'organizations table should have RLS enforced');
-select row_security_is_enforced('public', 'organization_members', 'organization_members table should have RLS enforced');
+select results_eq($$ select relrowsecurity from pg_class where relname = 'organizations' $$, $$ values(true) $$, 'organizations table should have RLS enforced');
+select results_eq($$ select relrowsecurity from pg_class where relname = 'organization_members' $$, $$ values(true) $$, 'organization_members table should have RLS enforced');
 
 -- Check create_organization RPC
 select has_function('public', 'create_organization', ARRAY['text'], 'create_organization function should exist');

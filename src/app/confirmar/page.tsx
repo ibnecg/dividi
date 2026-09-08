@@ -14,8 +14,8 @@ export default function ConfirmPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Button asChild className="w-full" variant="outline">
-            <Link href="/entrar">Ir para entrar</Link>
+          <Button render={<Link href="/entrar" />} className="w-full" variant="outline">
+            Ir para entrar
           </Button>
         </CardContent>
         <CardFooter className="flex justify-center">

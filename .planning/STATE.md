@@ -4,12 +4,12 @@ milestone: v1.0
 milestone_name: milestone
 status: executing
 stopped_at: Phase 2 UI-SPEC approved
-last_updated: "2026-09-08T01:16:58.032Z"
-last_activity: 2026-09-08 -- Phase 01 execution started
+last_updated: "2026-09-08T13:38:53.816Z"
+last_activity: 2026-09-08 -- Phase 02 execution started
 progress:
   total_phases: 5
   completed_phases: 0
-  total_plans: 5
+  total_plans: 11
   completed_plans: 1
   percent: 0
 ---
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-08-30)
 
 **Core value:** Campaign organizers can publish item-based donation campaigns where donors can quickly choose what to fund, pay by PIX QR code, and reduce remaining item quantities without manual coordination.
-**Current focus:** Phase 01 — account-ownership-and-tenancy
+**Current focus:** Phase 02 — organizer-campaign-management
 
 ## Current Position
 
-Phase: 01 (account-ownership-and-tenancy) — EXECUTING
-Plan: 1 of 5
-Status: Executing Phase 01
-Last activity: 2026-09-08 -- Phase 01 execution started
+Phase: 02 (organizer-campaign-management) — EXECUTING
+Plan: 1 of 6
+Status: Executing Phase 02
+Last activity: 2026-09-08 -- Phase 02 execution started
 
 Progress: [..........] 0%
 

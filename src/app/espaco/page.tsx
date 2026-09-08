@@ -45,14 +45,14 @@ export default async function WorkspacePage() {
           </div>
           
           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
+            <DropdownMenuTrigger render={
               <Button variant="ghost" className="relative h-11 w-11 rounded-full p-0" aria-label="Menu da conta">
                 <Avatar className="h-11 w-11">
                   <AvatarFallback>{userInitials}</AvatarFallback>
                 </Avatar>
               </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56" align="end" forceMount>
+            } />
+            <DropdownMenuContent className="w-56" align="end">
               <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col space-y-1">
                   <p className="text-sm font-medium leading-none">{userName}</p>
@@ -62,9 +62,7 @@ export default async function WorkspacePage() {
               <DropdownMenuSeparator />
               <form action={signOut}>
                 <button type="submit" className="w-full text-left">
-                  <DropdownMenuItem asChild>
-                    <span className="w-full cursor-pointer">Sair</span>
-                  </DropdownMenuItem>
+                  <DropdownMenuItem render={<span className="w-full cursor-pointer">Sair</span>} />
                 </button>
               </form>
             </DropdownMenuContent>
