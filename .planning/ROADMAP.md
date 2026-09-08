@@ -71,7 +71,30 @@ Plans:
   3. An owner can see their campaign dashboard and each campaign's items, remaining quantities, and fulfillment state.
   4. An owner can publish, unpublish, close, or archive a campaign, and changes to publication status or PIX recipient are retained as audit activity.
 
-**Plans**: TBD
+**Plans**: 6 plans
+
+Plans:
+**Wave 1**
+
+- [ ] 02-01-PLAN.md — Prove retry-safe owner draft creation end to end.
+
+**Wave 2** *(after Wave 1; plans run in parallel)*
+
+- [ ] 02-02-PLAN.md — Deliver the owner-only campaign card dashboard.
+- [ ] 02-03-PLAN.md — Complete durable content and strict audited PIX setup.
+
+**Wave 3** *(blocked on campaign setup)*
+
+- [ ] 02-04-PLAN.md — Add complete item management and fulfillment-state views.
+
+**Wave 4** *(blocked on items and dashboard)*
+
+- [ ] 02-05-PLAN.md — Enforce lifecycle controls and expose safe audit activity.
+
+**Wave 5** *(blocked on all implementation slices)*
+
+- [ ] 02-06-PLAN.md — Push the tested schema to development and close verification.
+
 **UI hint**: yes
 
 ### Phase 3: Public Discovery and Campaign Trust
@@ -131,7 +154,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Account Ownership and Tenancy | 0/5 | Not started | - |
-| 2. Organizer Campaign Management | 0/TBD | Not started | - |
+| 2. Organizer Campaign Management | 0/6 | Not started | - |
 | 3. Public Discovery and Campaign Trust | 0/TBD | Not started | - |
 | 4. PIX Donation and Confirmation | 0/TBD | Not started | - |
 | 5. Public Safety and Launch Readiness | 0/TBD | Not started | - |
