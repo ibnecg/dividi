@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test:unit": "node --experimental-strip-types --test tests/unit/**/*.test.ts",
     "supabase:start": "supabase start",

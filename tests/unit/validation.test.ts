@@ -1,7 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert'
-import { signUpSchema, signInSchema } from '../../src/lib/auth/validation.ts'
-import { organizationSchema } from '../../src/lib/organizations/validation.ts'
+import { signUpSchema, signInSchema } from '../../src/lib/auth/validation'
+import { organizationSchema } from '../../src/lib/organizations/validation'
 
 test('signUpSchema validates correctly', () => {
   assert.strictEqual(signUpSchema.safeParse({ name: 'User', email: 'test@example.com', password: 'password123' }).success, true)
