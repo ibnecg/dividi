@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { signUpSchema, signInSchema } from './validation'
 
-export async function signUp(prevState: any, formData: FormData) {
+export async function signUp(prevState: unknown, formData: FormData) {
   const data = Object.fromEntries(formData.entries())
   const result = signUpSchema.safeParse(data)
   
@@ -37,7 +37,7 @@ export async function signUp(prevState: any, formData: FormData) {
   redirect('/confirmar')
 }
 
-export async function signIn(prevState: any, formData: FormData) {
+export async function signIn(prevState: unknown, formData: FormData) {
   const data = Object.fromEntries(formData.entries())
   const result = signInSchema.safeParse(data)
   

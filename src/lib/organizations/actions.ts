@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { organizationSchema } from './validation'
 
-export async function createOrganization(prevState: any, formData: FormData) {
+export async function createOrganization(prevState: unknown, formData: FormData) {
   const data = Object.fromEntries(formData.entries())
   const result = organizationSchema.safeParse(data)
   

@@ -8,6 +8,7 @@ export default function NovaCampanhaPage() {
   const [creationToken, setCreationToken] = useState('')
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setCreationToken(window.crypto.randomUUID())
   }, [])
 

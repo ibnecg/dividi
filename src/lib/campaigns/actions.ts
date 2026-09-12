@@ -17,7 +17,7 @@ const draftSchema = z.object({
   creation_token: z.string().uuid('Token de criação inválido')
 })
 
-export async function createCampaignDraft(prevState: any, formData: FormData) {
+export async function createCampaignDraft(prevState: unknown, formData: FormData) {
   await requireUser()
   
   const validated = draftSchema.safeParse({
