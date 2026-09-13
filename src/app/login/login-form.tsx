@@ -36,17 +36,11 @@ export default function LoginForm() {
         return;
       }
 
-      if (data?.session) {
+      if (data?.token || data?.user) {
         router.push('/dashboard');
         router.refresh();
       } else {
-        // Neon auth might just return user data directly or a token
-        if (data?.user || data?.token) {
-          router.push('/dashboard');
-          router.refresh();
-        } else {
-          setError('Erro inesperado: Sessão não estabelecida.');
-        }
+        setError('Erro inesperado: Autenticação falhou.');
       }
     } catch (err) {
       console.error(err);
