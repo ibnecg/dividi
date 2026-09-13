@@ -1,6 +1,8 @@
 import Sidebar from '@/components/dashboard/sidebar';
 import { getUserOrganizationName } from './actions';
 
+export const dynamic = 'force-dynamic';
+
 export default async function DashboardLayout({
   children,
 }: {
