@@ -1,14 +1,17 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-export async function proxy(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   
   const isAuthPage = pathname.startsWith('/login') || pathname.startsWith('/signup');
   const isProtectedRoute = pathname.startsWith('/dashboard');
 
-  // Check for session cookie from better-auth (which Neon Auth uses under the hood)
-  const sessionCookie = request.cookies.get('better-auth.session_token') || request.cookies.get('__Secure-better-auth.session_token');
+  // Check for session cookie from better-auth or neon-auth
+  const sessionCookie = request.cookies.get('better-auth.session_token') || 
+                        request.cookies.get('__Secure-better-auth.session_token') ||
+                        request.cookies.get('neon-auth.session_token') ||
+                        request.cookies.get('__Secure-neon-auth.session_token');
 
   // Redirect to login if unauthenticated user tries to access protected route
   if (isProtectedRoute && !sessionCookie) {
