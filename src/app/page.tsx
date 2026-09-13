@@ -27,6 +27,9 @@ export default function Home() {
         </div>
         <div className="flex flex-1 items-center justify-end space-x-2">
           <nav className="flex items-center space-x-4">
+            <Link href="/login" className="text-sm font-medium hover:underline underline-offset-4">
+              Entrar
+            </Link>
             <Link href="/signup">
               <Button>Criar Conta</Button>
             </Link>
