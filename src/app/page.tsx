@@ -15,9 +15,25 @@ import {
   ArrowRight
 } from "lucide-react"
 
+import Link from "next/link"
+
 export default function Home() {
   return (
     <div className="flex flex-col min-h-screen bg-background">
+      {/* Header */}
+      <header className="flex h-16 items-center px-4 md:px-6 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
+        <div className="mr-4 hidden md:flex">
+          <span className="font-bold text-xl tracking-tight">Dividi</span>
+        </div>
+        <div className="flex flex-1 items-center justify-end space-x-2">
+          <nav className="flex items-center space-x-4">
+            <Link href="/signup">
+              <Button>Criar Conta</Button>
+            </Link>
+          </nav>
+        </div>
+      </header>
+
       {/* Hero Section */}
       <section className="flex flex-col items-center justify-center pt-24 pb-16 px-4 text-center sm:pt-32 sm:pb-24">
         <h1 className="text-5xl font-bold tracking-tight sm:text-6xl max-w-4xl">
