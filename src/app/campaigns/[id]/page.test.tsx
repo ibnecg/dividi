@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+import '@testing-library/jest-dom'
 import { render, screen } from '@testing-library/react'
 import CampaignDetailsPage from './page'
 import { db } from '@/db'
@@ -24,12 +25,12 @@ vi.mock('next/navigation', () => ({
 describe('CampaignDetailsPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    vi.mocked(db.where).mockReset().mockReturnThis()
-    vi.mocked(db.limit).mockReset().mockReturnThis()
+    vi.mocked((db as any).where).mockReset().mockReturnThis()
+    vi.mocked((db as any).limit).mockReset().mockReturnThis()
   })
 
   it('calls notFound when campaign does not exist', async () => {
-    vi.mocked(db.where).mockReturnValueOnce({ 
+    vi.mocked((db as any).where).mockReturnValueOnce({ 
       limit: vi.fn().mockResolvedValueOnce([]) 
     } as any)
 
@@ -64,19 +65,19 @@ describe('CampaignDetailsPage', () => {
       }
     ]
 
-    vi.mocked(db.where)
+    vi.mocked((db as any).where)
       .mockReturnValueOnce({ limit: vi.fn().mockResolvedValueOnce([mockCampaign]) } as any)
       .mockResolvedValueOnce(mockItems as any)
 
     const jsx = await CampaignDetailsPage({ params: Promise.resolve({ id: '1' }) })
     render(jsx)
 
-    expect(screen.getByText('Campanha de Inverno')).toBeInTheDocument()
-    expect(screen.getByText('Doações de cobertores')).toBeInTheDocument()
-    expect(screen.getByText('123.456.789-00')).toBeInTheDocument()
-    expect(screen.getByText('Cobertor Casal')).toBeInTheDocument()
-    expect(screen.getByText(/50,00/)).toBeInTheDocument()
-    expect(screen.getByText('Meias')).toBeInTheDocument()
+    expect(screen.getByText('Campanha de Inverno')).toBeDefined()
+    expect(screen.getByText('Doações de cobertores')).toBeDefined()
+    expect(screen.getByText('123.456.789-00')).toBeDefined()
+    expect(screen.getByText('Cobertor Casal')).toBeDefined()
+    expect(screen.getByText(/50,00/)).toBeDefined()
+    expect(screen.getByText('Meias')).toBeDefined()
   })
 
   it('renders empty state for items when none exist', async () => {
@@ -89,13 +90,13 @@ describe('CampaignDetailsPage', () => {
       createdAt: new Date(),
     }
 
-    vi.mocked(db.where)
+    vi.mocked((db as any).where)
       .mockReturnValueOnce({ limit: vi.fn().mockResolvedValueOnce([mockCampaign]) } as any)
       .mockResolvedValueOnce([] as any)
 
     const jsx = await CampaignDetailsPage({ params: Promise.resolve({ id: '1' }) })
     render(jsx)
 
-    expect(screen.getByText('Esta campanha não possui itens específicos listados no momento.')).toBeInTheDocument()
+    expect(screen.getByText('Esta campanha não possui itens específicos listados no momento.')).toBeDefined()
   })
 })
