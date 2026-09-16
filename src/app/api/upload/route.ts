@@ -12,6 +12,17 @@ export async function POST(request: Request): Promise<NextResponse> {
   }
 
   try {
+    if (process.env.NODE_ENV !== 'production' && !process.env.BLOB_READ_WRITE_TOKEN) {
+      // Mock upload for local development/testing without token
+      return NextResponse.json({
+        type: 'blob',
+        url: 'https://placehold.co/600x400/png?text=Mock+Image',
+        clientPayload: (body as HandleUploadBody & { clientPayload?: string }).clientPayload,
+        token: 'mock-token',
+        pathname: 'mock-image.png',
+      });
+    }
+
     const jsonResponse = await handleUpload({
       body,
       request,
