@@ -24,7 +24,7 @@ export function CampaignForm() {
     setValue,
     formState: { errors, isSubmitting },
   } = useForm<CampaignFormValues>({
-    resolver: zodResolver(campaignSchema),
+    resolver: zodResolver(campaignSchema) as any,
     defaultValues: {
       name: '',
       description: '',

@@ -3,7 +3,7 @@ import { auth } from '@/lib/auth/server';
 import { redirect } from 'next/navigation';
 
 export default async function NewCampaignPage() {
-  const session = await auth.getSession();
+  const { data: session } = await auth.getSession();
   
   if (!session?.user) {
     redirect('/login');
