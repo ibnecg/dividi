@@ -1,7 +1,7 @@
 ---
 version: 1.0.0
 owner: antigravity
-status: approved
+status: done
 last_updated: 2026-09-12
 dependencies: []
 llm_directives:
