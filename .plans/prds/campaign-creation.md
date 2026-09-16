@@ -1,7 +1,7 @@
 ---
 version: 1.0.0
 owner: kallklen
-status: approved
+status: done
 last_updated: 2026-09-13
 dependencies: []
 llm_directives:
