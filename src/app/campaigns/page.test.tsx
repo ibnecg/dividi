@@ -1,4 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
+import '@testing-library/jest-dom'
 import { render, screen } from '@testing-library/react'
 import CampaignsPage from './page'
 import { db } from '@/db'
@@ -17,14 +18,14 @@ vi.mock('@/db', () => {
 describe('CampaignsPage', () => {
   it('renders empty state when there are no campaigns', async () => {
     // @ts-ignore - Mocking return value
-    vi.mocked(db.orderBy).mockResolvedValueOnce([])
+    vi.mocked((db as any).orderBy).mockResolvedValueOnce([])
 
     const jsx = await CampaignsPage()
     render(jsx)
 
-    expect(screen.getByText('Campanhas Solidárias')).toBeInTheDocument()
-    expect(screen.getByText('Não há campanhas ativas no momento.')).toBeInTheDocument()
-    expect(screen.getByText('Voltar para o Início')).toBeInTheDocument()
+    expect(screen.getByText('Campanhas Solidárias')).toBeDefined()
+    expect(screen.getByText('Não há campanhas ativas no momento.')).toBeDefined()
+    expect(screen.getByText('Voltar para o Início')).toBeDefined()
   })
 
   it('renders campaigns when they exist', async () => {
@@ -46,14 +47,14 @@ describe('CampaignsPage', () => {
     ]
 
     // @ts-ignore - Mocking return value
-    vi.mocked(db.orderBy).mockResolvedValueOnce(mockCampaigns)
+    vi.mocked((db as any).orderBy).mockResolvedValueOnce(mockCampaigns)
 
     const jsx = await CampaignsPage()
     render(jsx)
 
-    expect(screen.getByText('Campanha de Inverno')).toBeInTheDocument()
-    expect(screen.getByText('Doações de cobertores')).toBeInTheDocument()
-    expect(screen.getByText('Campanha de Alimentos')).toBeInTheDocument()
+    expect(screen.getByText('Campanha de Inverno')).toBeDefined()
+    expect(screen.getByText('Doações de cobertores')).toBeDefined()
+    expect(screen.getByText('Campanha de Alimentos')).toBeDefined()
     
     // Check if links exist
     const links = screen.getAllByRole('link')
