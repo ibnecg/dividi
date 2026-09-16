@@ -46,12 +46,16 @@ export default function Home() {
           Conectamos quem precisa de ajuda com quem quer ajudar. Um sistema de doações focado em necessidades reais e impacto social transparente.
         </p>
         <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center items-center">
-          <Button size="lg" className="w-full sm:w-auto font-medium text-base">
-            Criar Campanha
-          </Button>
-          <Button size="lg" variant="outline" className="w-full sm:w-auto font-medium text-base">
-            Quero Doar
-          </Button>
+          <Link href="/dashboard/campaigns/new" className="w-full sm:w-auto">
+            <Button size="lg" className="w-full font-medium text-base">
+              Criar Campanha
+            </Button>
+          </Link>
+          <Link href="/campaigns" className="w-full sm:w-auto">
+            <Button size="lg" variant="outline" className="w-full font-medium text-base">
+              Quero Doar
+            </Button>
+          </Link>
         </div>
       </section>
 
