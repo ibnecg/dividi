@@ -8,7 +8,7 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 
 export async function createCampaignAction(data: CampaignFormValues) {
-  const session = await auth.getSession();
+  const { data: session } = await auth.getSession();
   if (!session?.user?.id) {
     return { error: 'Usuário não autenticado' };
   }
