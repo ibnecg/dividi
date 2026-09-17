@@ -47,7 +47,7 @@ export function CampaignForm() {
       setIsUploading(true);
       setError(null);
       const newBlob = await upload(file.name, file, {
-        access: 'public',
+        access: 'private',
         handleUploadUrl: '/api/upload',
       });
 
