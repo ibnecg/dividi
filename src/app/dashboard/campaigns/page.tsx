@@ -4,8 +4,9 @@ import { eq, desc } from 'drizzle-orm';
 import { auth } from '@/lib/auth/server';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { PlusCircle } from 'lucide-react';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
+import { PlusCircle, Edit3 } from 'lucide-react';
+import { CampaignStatusToggle } from '@/components/campaign-status-toggle';
 
 export default async function CampaignsPage() {
   const { data: session } = await auth.getSession();
@@ -46,15 +47,26 @@ export default async function CampaignsPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {userCampaigns.map((campaign) => (
-            <Card key={campaign.id} className="flex flex-col h-full">
+            <Card key={campaign.id} className="flex flex-col h-full overflow-hidden">
               {campaign.imageUrl && (
-                <div className="w-full h-48 overflow-hidden rounded-t-lg shrink-0">
+                <div className="w-full h-48 overflow-hidden rounded-t-lg shrink-0 bg-muted">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={campaign.imageUrl} alt={campaign.name} className="w-full h-full object-cover" />
                 </div>
               )}
-              <CardHeader>
-                <CardTitle className="text-lg line-clamp-1">{campaign.name}</CardTitle>
+              <CardHeader className="space-y-2">
+                <div className="flex items-start justify-between gap-2">
+                  <CardTitle className="text-lg line-clamp-1">{campaign.name}</CardTitle>
+                  <span
+                    className={`text-xs px-2 py-0.5 rounded-full font-medium shrink-0 border ${
+                      campaign.isActive
+                        ? 'bg-primary/10 text-primary border-primary/20'
+                        : 'bg-muted text-muted-foreground border-border'
+                    }`}
+                  >
+                    {campaign.isActive ? 'Ativa' : 'Inativa'}
+                  </span>
+                </div>
                 <CardDescription className="line-clamp-2">{campaign.description}</CardDescription>
               </CardHeader>
               <CardContent className="mt-auto">
@@ -62,6 +74,20 @@ export default async function CampaignsPage() {
                   Criada em {new Date(campaign.createdAt).toLocaleDateString('pt-BR')}
                 </div>
               </CardContent>
+              <CardFooter className="pt-2 border-t border-border flex items-center justify-between gap-2">
+                <Link href={`/dashboard/campaigns/${campaign.id}/edit`} className="flex-1">
+                  <Button variant="outline" size="sm" className="w-full">
+                    <Edit3 className="w-3.5 h-3.5 mr-1.5" />
+                    Editar
+                  </Button>
+                </Link>
+                <CampaignStatusToggle
+                  campaignId={campaign.id}
+                  isActive={campaign.isActive}
+                  campaignName={campaign.name}
+                  size="sm"
+                />
+              </CardFooter>
             </Card>
           ))}
         </div>

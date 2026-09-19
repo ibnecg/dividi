@@ -3,10 +3,14 @@ import { campaigns } from "@/db/schema"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { desc } from "drizzle-orm"
+import { desc, eq } from "drizzle-orm"
 
 export default async function CampaignsPage() {
-  const activeCampaigns = await db.select().from(campaigns).orderBy(desc(campaigns.createdAt))
+  const activeCampaigns = await db
+    .select()
+    .from(campaigns)
+    .where(eq(campaigns.isActive, true))
+    .orderBy(desc(campaigns.createdAt))
 
   return (
     <div className="container mx-auto py-12 px-4 max-w-5xl">
