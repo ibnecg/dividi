@@ -77,7 +77,12 @@ export default async function CampaignDetailsPage({ params }: PageProps) {
               </CardHeader>
               <CardContent className="mt-auto pb-6">
                 {item.quantity && item.quantity > 0 ? (
-                  <PledgeDialog item={item} campaignId={campaign.id} />
+                  <PledgeDialog
+                    item={item}
+                    campaignId={campaign.id}
+                    campaignName={campaign.name}
+                    campaignPixKey={campaign.pixKey}
+                  />
                 ) : (
                   <div className="w-full text-center py-2 mt-4 bg-muted text-muted-foreground rounded-md font-medium text-sm">
                     Esgotado
