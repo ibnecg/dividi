@@ -2,7 +2,8 @@ import { db } from "@/db"
 import { campaigns, campaignItems } from "@/db/schema"
 import { eq } from "drizzle-orm"
 import { notFound } from "next/navigation"
-import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardDescription, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
+import { PledgeDialog } from "@/components/pledge-dialog"
 
 interface PageProps {
   params: Promise<{ id: string }>
@@ -70,7 +71,19 @@ export default async function CampaignDetailsPage({ params }: PageProps) {
                     {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(item.amount))}
                   </CardDescription>
                 )}
+                <div className="mt-2 text-sm text-muted-foreground">
+                  Faltam: <span className="font-medium text-foreground">{item.quantity}</span>
+                </div>
               </CardHeader>
+              <CardContent className="mt-auto pb-6">
+                {item.quantity && item.quantity > 0 ? (
+                  <PledgeDialog item={item} campaignId={campaign.id} />
+                ) : (
+                  <div className="w-full text-center py-2 mt-4 bg-muted text-muted-foreground rounded-md font-medium text-sm">
+                    Esgotado
+                  </div>
+                )}
+              </CardContent>
             </Card>
           ))}
         </div>

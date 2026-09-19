@@ -3,6 +3,7 @@ import { z } from 'zod';
 export const campaignItemSchema = z.object({
   description: z.string().min(1, 'A descrição é obrigatória'),
   amount: z.coerce.number().nullish(),
+  quantity: z.coerce.number().int().min(1, 'A quantidade deve ser maior que zero').default(1),
   imageUrl: z.string().url('URL de imagem inválida').optional().or(z.literal('')),
 });
 
@@ -15,3 +16,13 @@ export const campaignSchema = z.object({
 });
 
 export type CampaignFormValues = z.infer<typeof campaignSchema>;
+
+export const pledgeSchema = z.object({
+  campaignItemId: z.string().min(1, 'Item inválido'),
+  quantity: z.coerce.number().int().min(1, 'A quantidade deve ser maior que zero'),
+  donorName: z.string().optional(),
+  donorPhone: z.string().optional(),
+  message: z.string().optional(),
+});
+
+export type PledgeFormValues = z.infer<typeof pledgeSchema>;
