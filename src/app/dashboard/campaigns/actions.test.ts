@@ -79,6 +79,7 @@ describe('createCampaignAction', () => {
 
     expect(db.batch).toHaveBeenCalled();
     expect(revalidatePath).toHaveBeenCalledWith('/dashboard/campaigns');
+    expect(revalidatePath).toHaveBeenCalledWith('/campaigns');
     expect(redirect).toHaveBeenCalledWith('/dashboard/campaigns');
   });
 });
