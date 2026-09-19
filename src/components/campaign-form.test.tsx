@@ -108,8 +108,8 @@ describe('CampaignForm Component', () => {
     fireEvent.click(screen.getByRole('button', { name: /Adicionar Item/i }));
 
     const fileInputs = container.querySelectorAll('input[type="file"]');
-    expect(fileInputs.length).toBe(2);
-    const itemFileInput = fileInputs[1] as HTMLInputElement;
+    expect(fileInputs.length).toBe(3);
+    const itemFileInput = fileInputs[fileInputs.length - 1] as HTMLInputElement;
 
     const testFile = new File(['dummy-content'], 'item.png', { type: 'image/png' });
 
@@ -224,5 +224,67 @@ describe('CampaignForm Component', () => {
     expect(
       await screen.findByText('Não foi possível salvar a campanha no momento.')
     ).toBeDefined();
+  });
+
+  it('renders CSV template download and import buttons', () => {
+    render(<CampaignForm />);
+    expect(screen.getByRole('button', { name: /Template CSV/i })).toBeDefined();
+    expect(screen.getByRole('button', { name: /Importar CSV/i })).toBeDefined();
+  });
+
+  it('downloads CSV template when button is clicked', () => {
+    const createObjectURLMock = vi.fn();
+    global.URL.createObjectURL = createObjectURLMock;
+    
+    render(<CampaignForm />);
+    const downloadBtn = screen.getByRole('button', { name: /Template CSV/i });
+    fireEvent.click(downloadBtn);
+    
+    expect(createObjectURLMock).toHaveBeenCalled();
+  });
+
+  it('shows error when uploading non-csv file', async () => {
+    const { container } = render(<CampaignForm />);
+    const fileInputs = container.querySelectorAll('input[type="file"]');
+    const csvInput = fileInputs[1] as HTMLInputElement;
+    
+    const testFile = new File(['invalid'], 'test.txt', { type: 'text/plain' });
+    fireEvent.change(csvInput, { target: { files: [testFile] } });
+    
+    expect(
+      await screen.findByText('Por favor, selecione um arquivo .csv válido.')
+    ).toBeDefined();
+  });
+
+  it('shows error when csv is missing Descrição column', async () => {
+    const { container } = render(<CampaignForm />);
+    const fileInputs = container.querySelectorAll('input[type="file"]');
+    const csvInput = fileInputs[1] as HTMLInputElement;
+    
+    const testFile = new File(['Nome,Valor\nTeste,10'], 'test.csv', { type: 'text/csv' });
+    fireEvent.change(csvInput, { target: { files: [testFile] } });
+    
+    expect(
+      await screen.findByText('O CSV deve conter pelo menos a coluna "Descrição".')
+    ).toBeDefined();
+  });
+
+  it('successfully parses csv and appends items', async () => {
+    const { container } = render(<CampaignForm />);
+    const fileInputs = container.querySelectorAll('input[type="file"]');
+    const csvInput = fileInputs[1] as HTMLInputElement;
+    
+    const csvContent = 'Descrição,Valor,Quantidade\nItem 1,10.50,2\nItem 2,,1\n';
+    const testFile = new File([csvContent], 'test.csv', { type: 'text/csv' });
+    fireEvent.change(csvInput, { target: { files: [testFile] } });
+    
+    expect(
+      await screen.findByText('2 itens importados com sucesso!')
+    ).toBeDefined();
+    
+    // Verify inputs were populated
+    expect(await screen.findByDisplayValue('Item 1')).toBeDefined();
+    expect(await screen.findByDisplayValue('10.5')).toBeDefined();
+    expect(await screen.findByDisplayValue('Item 2')).toBeDefined();
   });
 });

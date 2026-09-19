@@ -11,7 +11,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardHeader, CardContent, CardTitle } from '@/components/ui/card';
 import { upload } from '@vercel/blob/client';
-import { Plus, Trash2, Loader2 } from 'lucide-react';
+import { Plus, Trash2, Loader2, Download, Upload } from 'lucide-react';
+import Papa from 'papaparse';
 
 interface CampaignFormProps {
   campaignId?: string;
@@ -21,6 +22,8 @@ interface CampaignFormProps {
 export function CampaignForm({ campaignId, initialData }: CampaignFormProps = {}) {
   const [isUploading, setIsUploading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const [success, setSuccess] = React.useState<string | null>(null);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const {
     register,
@@ -72,6 +75,79 @@ export function CampaignForm({ campaignId, initialData }: CampaignFormProps = {}
     }
   };
 
+  const downloadCsvTemplate = () => {
+    const csvContent = 'Descrição,Valor,Quantidade\nExemplo de Item,50.00,2\n';
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', 'template_itens_campanha.csv');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleCsvUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.name.endsWith('.csv')) {
+      setError('Por favor, selecione um arquivo .csv válido.');
+      setSuccess(null);
+      return;
+    }
+
+    Papa.parse(file, {
+      header: true,
+      skipEmptyLines: true,
+      complete: (results) => {
+        const parsedItems = results.data as Array<Record<string, string>>;
+        let importedCount = 0;
+
+        if (results.meta.fields && !results.meta.fields.includes('Descrição')) {
+          setError('O CSV deve conter pelo menos a coluna "Descrição".');
+          setSuccess(null);
+          return;
+        }
+
+        parsedItems.forEach((row) => {
+          const description = row['Descrição']?.trim();
+          if (!description) return;
+
+          const amountStr = row['Valor']?.trim();
+          const amount = amountStr ? parseFloat(amountStr.replace(',', '.')) : undefined;
+          
+          const qtyStr = row['Quantidade']?.trim();
+          const quantity = qtyStr ? parseInt(qtyStr, 10) : 1;
+
+          append({
+            description,
+            amount: isNaN(amount as number) ? undefined : amount,
+            quantity: isNaN(quantity) ? 1 : quantity,
+            imageUrl: ''
+          });
+          importedCount++;
+        });
+
+        if (importedCount > 0) {
+          setSuccess(`${importedCount} itens importados com sucesso!`);
+          setError(null);
+        } else {
+          setError('Nenhum item válido encontrado no CSV.');
+          setSuccess(null);
+        }
+        
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
+      },
+      error: (err) => {
+        setError(`Erro ao ler o arquivo CSV: ${err.message}`);
+        setSuccess(null);
+      }
+    });
+  };
+
   const onSubmit = async (data: CampaignFormValues) => {
     setError(null);
     const result = campaignId
@@ -88,6 +164,11 @@ export function CampaignForm({ campaignId, initialData }: CampaignFormProps = {}
       {error && (
         <div className="p-4 bg-destructive/10 text-destructive border border-destructive rounded-md">
           {error}
+        </div>
+      )}
+      {success && (
+        <div className="p-4 bg-green-100 text-green-800 border border-green-300 rounded-md">
+          {success}
         </div>
       )}
 
@@ -138,17 +219,44 @@ export function CampaignForm({ campaignId, initialData }: CampaignFormProps = {}
       </Card>
 
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <h3 className="text-lg font-medium">Itens da Campanha (Opcional)</h3>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => append({ description: '', amount: undefined, quantity: 1, imageUrl: '' })}
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Adicionar Item
-          </Button>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={downloadCsvTemplate}
+            >
+              <Download className="w-4 h-4 mr-2" />
+              Template CSV
+            </Button>
+            <input
+              type="file"
+              accept=".csv"
+              className="hidden"
+              ref={fileInputRef}
+              onChange={handleCsvUpload}
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <Upload className="w-4 h-4 mr-2" />
+              Importar CSV
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => append({ description: '', amount: undefined, quantity: 1, imageUrl: '' })}
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Adicionar Item
+            </Button>
+          </div>
         </div>
         
         {fields.map((field, index) => {
