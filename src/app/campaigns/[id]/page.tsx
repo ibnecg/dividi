@@ -2,8 +2,11 @@ import { db } from "@/db"
 import { campaigns, campaignItems } from "@/db/schema"
 import { eq } from "drizzle-orm"
 import { notFound } from "next/navigation"
+import Link from "next/link"
 import { Card, CardDescription, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { PledgeDialog } from "@/components/pledge-dialog"
+import { auth } from "@/lib/auth/server"
+import { AlertCircle } from "lucide-react"
 
 interface PageProps {
   params: Promise<{ id: string }>
@@ -23,6 +26,10 @@ export default async function CampaignDetailsPage({ params }: PageProps) {
     notFound()
   }
 
+  // Fetch session to check ownership
+  const { data: session } = await auth.getSession();
+  const isOwner = Boolean(session?.user?.id && session.user.id === campaign.userId);
+
   // Fetch associated items
   const items = await db
     .select()
@@ -31,6 +38,28 @@ export default async function CampaignDetailsPage({ params }: PageProps) {
 
   return (
     <div className="container mx-auto py-12 px-4 max-w-4xl">
+      {!campaign.isActive && (
+        <div className="mb-8 p-4 bg-muted border border-border rounded-xl flex items-start gap-3">
+          <AlertCircle className="w-5 h-5 text-muted-foreground shrink-0 mt-0.5" />
+          <div>
+            <p className="font-medium text-foreground">
+              Esta campanha está desativada e não está recebendo novas doações.
+            </p>
+            {isOwner && (
+              <p className="text-sm text-muted-foreground mt-1">
+                Você é o organizador desta campanha.{' '}
+                <Link
+                  href={`/dashboard/campaigns/${campaign.id}/edit`}
+                  className="underline font-medium text-foreground hover:text-primary transition-colors"
+                >
+                  Clique aqui para editá-la ou reativá-la no painel.
+                </Link>
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+
       {campaign.imageUrl && (
         <div className="w-full aspect-[21/9] bg-muted mb-8 rounded-2xl overflow-hidden">
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -42,7 +71,7 @@ export default async function CampaignDetailsPage({ params }: PageProps) {
         <h1 className="text-4xl font-bold tracking-tight mb-4">{campaign.name}</h1>
         <p className="text-lg text-muted-foreground whitespace-pre-wrap">{campaign.description}</p>
         
-        {campaign.pixKey && (
+        {campaign.isActive && campaign.pixKey && (
           <div className="mt-6 p-4 bg-muted/50 rounded-lg border border-border inline-block">
             <p className="text-sm font-medium mb-1">Chave PIX para doação direta:</p>
             <p className="text-lg font-mono">{campaign.pixKey}</p>
@@ -76,7 +105,11 @@ export default async function CampaignDetailsPage({ params }: PageProps) {
                 </div>
               </CardHeader>
               <CardContent className="mt-auto pb-6">
-                {item.quantity && item.quantity > 0 ? (
+                {!campaign.isActive ? (
+                  <div className="w-full text-center py-2 mt-4 bg-muted text-muted-foreground rounded-md font-medium text-sm">
+                    Doações encerradas
+                  </div>
+                ) : item.quantity && item.quantity > 0 ? (
                   <PledgeDialog
                     item={item}
                     campaignId={campaign.id}
