@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 export const campaignItemSchema = z.object({
+  id: z.string().optional(),
   description: z.string().min(1, 'A descrição é obrigatória'),
   amount: z.coerce.number().nullish(),
   quantity: z.coerce.number().int().min(1, 'A quantidade deve ser maior que zero').default(1),

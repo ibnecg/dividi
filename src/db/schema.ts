@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, primaryKey, numeric, integer } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, primaryKey, numeric, integer, boolean } from 'drizzle-orm/pg-core';
 
 export const users = pgTable('users', {
   id: text('id').primaryKey(), // Matching the auth provider's user ID
@@ -31,7 +31,9 @@ export const campaigns = pgTable('campaigns', {
   description: text('description').notNull(),
   pixKey: text('pix_key').notNull(),
   imageUrl: text('image_url'),
+  isActive: boolean('is_active').default(true).notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
 export const campaignItems = pgTable('campaign_items', {

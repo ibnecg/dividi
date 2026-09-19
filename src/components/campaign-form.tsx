@@ -4,7 +4,7 @@ import * as React from 'react';
 import { useForm, useFieldArray, type Resolver } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { campaignSchema, type CampaignFormValues } from '@/lib/validations/campaign';
-import { createCampaignAction } from '@/app/dashboard/campaigns/actions';
+import { createCampaignAction, updateCampaignAction } from '@/app/dashboard/campaigns/actions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -13,7 +13,12 @@ import { Card, CardHeader, CardContent, CardTitle } from '@/components/ui/card';
 import { upload } from '@vercel/blob/client';
 import { Plus, Trash2, Loader2 } from 'lucide-react';
 
-export function CampaignForm() {
+interface CampaignFormProps {
+  campaignId?: string;
+  initialData?: CampaignFormValues;
+}
+
+export function CampaignForm({ campaignId, initialData }: CampaignFormProps = {}) {
   const [isUploading, setIsUploading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
@@ -22,10 +27,11 @@ export function CampaignForm() {
     control,
     handleSubmit,
     setValue,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<CampaignFormValues>({
     resolver: zodResolver(campaignSchema) as unknown as Resolver<CampaignFormValues>,
-    defaultValues: {
+    defaultValues: initialData || {
       name: '',
       description: '',
       pixKey: '',
@@ -33,6 +39,9 @@ export function CampaignForm() {
       items: [],
     },
   });
+
+  const campaignImageUrl = watch('imageUrl');
+  const watchedItems = watch('items');
 
   const { fields, append, remove } = useFieldArray({
     control,
@@ -65,7 +74,9 @@ export function CampaignForm() {
 
   const onSubmit = async (data: CampaignFormValues) => {
     setError(null);
-    const result = await createCampaignAction(data);
+    const result = campaignId
+      ? await updateCampaignAction(campaignId, data)
+      : await createCampaignAction(data);
     if (result?.error) {
       setError(result.error);
     }
@@ -82,7 +93,7 @@ export function CampaignForm() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Detalhes da Campanha</CardTitle>
+          <CardTitle>{campaignId ? 'Editar Detalhes da Campanha' : 'Detalhes da Campanha'}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
@@ -109,6 +120,12 @@ export function CampaignForm() {
 
           <div className="space-y-2">
             <Label htmlFor="campaignImage">Imagem da Campanha (Opcional, máx 50kb)</Label>
+            {campaignImageUrl && (
+              <div className="mb-2 relative w-36 h-24 rounded-md overflow-hidden border border-border">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={campaignImageUrl} alt="Capa da campanha" className="w-full h-full object-cover" />
+              </div>
+            )}
             <Input
               id="campaignImage"
               type="file"
@@ -134,72 +151,85 @@ export function CampaignForm() {
           </Button>
         </div>
         
-        {fields.map((field, index) => (
-          <Card key={field.id}>
-            <CardContent className="pt-6 relative">
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="absolute right-2 top-2 text-muted-foreground hover:text-destructive"
-                onClick={() => remove(index)}
-              >
-                <Trash2 className="w-4 h-4" />
-              </Button>
+        {fields.map((field, index) => {
+          const itemImageUrl = watchedItems?.[index]?.imageUrl;
 
-              <div className="grid gap-4 md:grid-cols-3">
-                <div className="space-y-2">
-                  <Label>Descrição do Item *</Label>
-                  <Input
-                    {...register(`items.${index}.description`)}
-                    placeholder="Ex: Saco de Ração 15kg, ou Doação Livre"
-                  />
-                  {errors.items?.[index]?.description && (
-                    <p className="text-sm text-destructive">{errors.items[index]?.description?.message}</p>
-                  )}
-                </div>
+          return (
+            <Card key={field.id}>
+              <CardContent className="pt-6 relative">
+                {/* Keep existing item ID */}
+                <input type="hidden" {...register(`items.${index}.id`)} />
 
-                <div className="space-y-2">
-                  <Label>Valor (Opcional - R$)</Label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    {...register(`items.${index}.amount`)}
-                    placeholder="Livre se branco"
-                  />
-                </div>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-2 top-2 text-muted-foreground hover:text-destructive"
+                  onClick={() => remove(index)}
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
 
-                <div className="space-y-2">
-                  <Label>Quantidade *</Label>
-                  <Input
-                    type="number"
-                    min="1"
-                    step="1"
-                    {...register(`items.${index}.quantity`)}
-                  />
-                  {errors.items?.[index]?.quantity && (
-                    <p className="text-sm text-destructive">{errors.items[index]?.quantity?.message}</p>
-                  )}
-                </div>
+                <div className="grid gap-4 md:grid-cols-3">
+                  <div className="space-y-2">
+                    <Label>Descrição do Item *</Label>
+                    <Input
+                      {...register(`items.${index}.description`)}
+                      placeholder="Ex: Saco de Ração 15kg, ou Doação Livre"
+                    />
+                    {errors.items?.[index]?.description && (
+                      <p className="text-sm text-destructive">{errors.items[index]?.description?.message}</p>
+                    )}
+                  </div>
 
-                <div className="space-y-2 md:col-span-3">
-                  <Label>Imagem do Item (Opcional)</Label>
-                  <Input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => handleImageUpload(e, index)}
-                    disabled={isUploading}
-                  />
+                  <div className="space-y-2">
+                    <Label>Valor (Opcional - R$)</Label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      {...register(`items.${index}.amount`)}
+                      placeholder="Livre se branco"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Quantidade *</Label>
+                    <Input
+                      type="number"
+                      min="1"
+                      step="1"
+                      {...register(`items.${index}.quantity`)}
+                    />
+                    {errors.items?.[index]?.quantity && (
+                      <p className="text-sm text-destructive">{errors.items[index]?.quantity?.message}</p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2 md:col-span-3">
+                    <Label>Imagem do Item (Opcional)</Label>
+                    {itemImageUrl && (
+                      <div className="mb-2 relative w-20 h-20 rounded-md overflow-hidden border border-border">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={itemImageUrl} alt="Imagem do item" className="w-full h-full object-cover" />
+                      </div>
+                    )}
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleImageUpload(e, index)}
+                      disabled={isUploading}
+                    />
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
 
       <Button type="submit" className="w-full" disabled={isSubmitting || isUploading}>
         {(isSubmitting || isUploading) && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-        Salvar Campanha
+        {campaignId ? 'Salvar Alterações' : 'Salvar Campanha'}
       </Button>
     </form>
   );

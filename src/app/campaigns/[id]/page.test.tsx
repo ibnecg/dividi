@@ -23,6 +23,13 @@ vi.mock('next/navigation', () => ({
   notFound: vi.fn().mockImplementation(() => { throw new Error('NEXT_NOT_FOUND') }),
 }))
 
+// Mock auth
+vi.mock('@/lib/auth/server', () => ({
+  auth: {
+    getSession: vi.fn().mockResolvedValue({ data: null }),
+  },
+}))
+
 describe('CampaignDetailsPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -48,6 +55,7 @@ describe('CampaignDetailsPage', () => {
       description: 'Doações de cobertores',
       pixKey: '123.456.789-00',
       imageUrl: 'http://example.com/image.jpg',
+      isActive: true,
       createdAt: new Date(),
     }
 
@@ -99,5 +107,67 @@ describe('CampaignDetailsPage', () => {
     render(jsx)
 
     expect(screen.getByText('Esta campanha não possui itens específicos listados no momento.')).toBeDefined()
+  })
+
+  it('renders inactive banner and disables pledges when campaign is inactive', async () => {
+    const mockCampaign = {
+      id: '1',
+      name: 'Campanha Desativada',
+      description: 'Campanha que foi encerrada',
+      pixKey: '123.456.789-00',
+      imageUrl: null,
+      isActive: false,
+      userId: 'user-creator',
+      createdAt: new Date(),
+    }
+
+    const mockItems = [
+      {
+        id: '101',
+        description: 'Cesta Básica',
+        amount: '100.00',
+        quantity: 5,
+        imageUrl: null,
+      }
+    ]
+
+    vi.mocked((db as any).where)
+      .mockReturnValueOnce({ limit: vi.fn().mockResolvedValueOnce([mockCampaign]) } as any)
+      .mockResolvedValueOnce(mockItems as any)
+
+    const jsx = await CampaignDetailsPage({ params: Promise.resolve({ id: '1' }) })
+    render(jsx)
+
+    expect(screen.getByText('Esta campanha está desativada e não está recebendo novas doações.')).toBeDefined()
+    expect(screen.getByText('Doações encerradas')).toBeDefined()
+    expect(screen.queryByText('Doar')).toBeNull()
+  })
+
+  it('renders organizer edit notice when logged in user is campaign owner of inactive campaign', async () => {
+    const { auth } = await import('@/lib/auth/server')
+    vi.mocked(auth.getSession).mockResolvedValueOnce({
+      data: { user: { id: 'owner-user-id' } }
+    } as any)
+
+    const mockCampaign = {
+      id: '1',
+      name: 'Minha Campanha Desativada',
+      description: 'Campanha de teste',
+      pixKey: '123.456.789-00',
+      imageUrl: null,
+      isActive: false,
+      userId: 'owner-user-id',
+      createdAt: new Date(),
+    }
+
+    vi.mocked((db as any).where)
+      .mockReturnValueOnce({ limit: vi.fn().mockResolvedValueOnce([mockCampaign]) } as any)
+      .mockResolvedValueOnce([] as any)
+
+    const jsx = await CampaignDetailsPage({ params: Promise.resolve({ id: '1' }) })
+    render(jsx)
+
+    expect(screen.getByText(/Você é o organizador desta campanha/)).toBeDefined()
+    expect(screen.getByRole('link', { name: /Clique aqui para editá-la ou reativá-la/ })).toBeDefined()
   })
 })
