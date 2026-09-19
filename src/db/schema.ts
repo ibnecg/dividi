@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, primaryKey, numeric } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, primaryKey, numeric, integer } from 'drizzle-orm/pg-core';
 
 export const users = pgTable('users', {
   id: text('id').primaryKey(), // Matching the auth provider's user ID
@@ -39,6 +39,17 @@ export const campaignItems = pgTable('campaign_items', {
   campaignId: text('campaign_id').notNull().references(() => campaigns.id, { onDelete: 'cascade' }),
   description: text('description').notNull(),
   amount: numeric('amount', { precision: 10, scale: 2 }), // Nullable for generic items
+  quantity: integer('quantity').notNull().default(1),
   imageUrl: text('image_url'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export const donations = pgTable('donations', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  campaignItemId: text('campaign_item_id').notNull().references(() => campaignItems.id, { onDelete: 'cascade' }),
+  quantity: integer('quantity').notNull(),
+  donorName: text('donor_name'),
+  donorPhone: text('donor_phone'),
+  message: text('message'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
