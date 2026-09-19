@@ -35,6 +35,7 @@ export async function createCampaignAction(data: CampaignFormValues) {
           campaignId: insertedCampaign.id,
           description: item.description,
           amount: item.amount ? item.amount.toString() : null,
+          quantity: item.quantity,
           imageUrl: item.imageUrl || null,
         }));
         await tx.insert(campaignItems).values(itemsToInsert);

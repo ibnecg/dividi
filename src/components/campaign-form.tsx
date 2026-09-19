@@ -127,7 +127,7 @@ export function CampaignForm() {
             type="button"
             variant="outline"
             size="sm"
-            onClick={() => append({ description: '', amount: undefined, imageUrl: '' })}
+            onClick={() => append({ description: '', amount: undefined, quantity: 1, imageUrl: '' })}
           >
             <Plus className="w-4 h-4 mr-2" />
             Adicionar Item
@@ -147,7 +147,7 @@ export function CampaignForm() {
                 <Trash2 className="w-4 h-4" />
               </Button>
 
-              <div className="grid gap-4 md:grid-cols-2">
+              <div className="grid gap-4 md:grid-cols-3">
                 <div className="space-y-2">
                   <Label>Descrição do Item *</Label>
                   <Input
@@ -165,11 +165,24 @@ export function CampaignForm() {
                     type="number"
                     step="0.01"
                     {...register(`items.${index}.amount`)}
-                    placeholder="Deixe em branco para valor livre"
+                    placeholder="Livre se branco"
                   />
                 </div>
 
-                <div className="space-y-2 md:col-span-2">
+                <div className="space-y-2">
+                  <Label>Quantidade *</Label>
+                  <Input
+                    type="number"
+                    min="1"
+                    step="1"
+                    {...register(`items.${index}.quantity`)}
+                  />
+                  {errors.items?.[index]?.quantity && (
+                    <p className="text-sm text-destructive">{errors.items[index]?.quantity?.message}</p>
+                  )}
+                </div>
+
+                <div className="space-y-2 md:col-span-3">
                   <Label>Imagem do Item (Opcional)</Label>
                   <Input
                     type="file"

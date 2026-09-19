@@ -15,6 +15,13 @@
       "when": 1789262632763,
       "tag": "0001_chunky_silk_fever",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1789827782910,
+      "tag": "0002_lazy_monster_badoon",
+      "breakpoints": true
     }
   ]
 }
