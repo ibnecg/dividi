@@ -60,5 +60,6 @@ export async function createCampaignAction(data: CampaignFormValues) {
   }
 
   revalidatePath('/dashboard/campaigns');
+  revalidatePath('/campaigns');
   redirect('/dashboard/campaigns');
 }
