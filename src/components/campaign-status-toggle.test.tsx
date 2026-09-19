@@ -121,4 +121,69 @@ describe('CampaignStatusToggle Component', () => {
     fireEvent.keyDown(window, { key: 'Escape' });
     expect(screen.queryByRole('dialog')).toBeNull();
   });
+
+  it('calls onStatusChange callback when provided upon successful status toggle', async () => {
+    const onStatusChangeMock = vi.fn();
+    vi.mocked(toggleCampaignStatusAction).mockResolvedValueOnce({
+      success: true,
+      isActive: false,
+    } as any);
+
+    render(
+      <CampaignStatusToggle
+        campaignId="camp-1"
+        isActive={true}
+        campaignName="Campanha de Inverno"
+        onStatusChange={onStatusChangeMock}
+      />
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /Desativar/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Confirmar Desativação/i }));
+
+    await waitFor(() => {
+      expect(onStatusChangeMock).toHaveBeenCalledWith(false);
+    });
+  });
+
+  it('displays error message when toggleCampaignStatusAction returns error', async () => {
+    vi.mocked(toggleCampaignStatusAction).mockResolvedValueOnce({
+      error: 'Campanha não encontrada ou você não tem permissão.',
+    } as any);
+
+    render(
+      <CampaignStatusToggle
+        campaignId="camp-1"
+        isActive={true}
+        campaignName="Campanha de Inverno"
+      />
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /Desativar/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Confirmar Desativação/i }));
+
+    expect(
+      await screen.findByText('Campanha não encontrada ou você não tem permissão.')
+    ).toBeDefined();
+  });
+
+  it('displays default error message when action throws an exception', async () => {
+    vi.mocked(toggleCampaignStatusAction).mockRejectedValueOnce(new Error('Network error'));
+
+    render(
+      <CampaignStatusToggle
+        campaignId="camp-1"
+        isActive={true}
+        campaignName="Campanha de Inverno"
+      />
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /Desativar/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Confirmar Desativação/i }));
+
+    expect(
+      await screen.findByText('Erro ao alterar status da campanha.')
+    ).toBeDefined();
+  });
 });
+

@@ -221,6 +221,35 @@ describe('Campaign Actions', () => {
       expect(revalidatePath).toHaveBeenCalledWith('/campaigns/camp-1');
       expect(redirect).toHaveBeenCalledWith('/dashboard/campaigns');
     });
+
+    it('should return error when database batch fails during update', async () => {
+      vi.mocked(auth.getSession).mockResolvedValueOnce({
+        data: { user: { id: 'user-id' } },
+      } as unknown as Awaited<ReturnType<typeof auth.getSession>>);
+
+      const mockCampaignLimit = vi.fn().mockResolvedValueOnce([
+        { id: 'camp-1', userId: 'user-id' },
+      ]);
+      const mockCampaignWhere = vi.fn().mockReturnValue({ limit: mockCampaignLimit });
+
+      const mockItemsWhere = vi.fn().mockResolvedValueOnce([]);
+
+      const mockFrom = vi.fn()
+        .mockReturnValueOnce({ where: mockCampaignWhere })
+        .mockReturnValueOnce({ where: mockItemsWhere });
+
+      vi.mocked(db.select).mockReturnValue({ from: mockFrom } as unknown as ReturnType<typeof db.select>);
+      vi.mocked(db.batch).mockRejectedValueOnce(new Error('Batch failed'));
+
+      const result = await updateCampaignAction('camp-1', {
+        name: 'Updated Name',
+        description: 'Updated description with plenty of characters',
+        pixKey: 'pix-12345',
+        items: [],
+      });
+
+      expect(result).toEqual({ error: 'Falha ao atualizar a campanha' });
+    });
   });
 
   describe('toggleCampaignStatusAction', () => {
@@ -309,6 +338,34 @@ describe('Campaign Actions', () => {
         })
       );
     });
+
+    it('should return error if campaignId is empty', async () => {
+      vi.mocked(auth.getSession).mockResolvedValueOnce({
+        data: { user: { id: 'user-id' } },
+      } as unknown as Awaited<ReturnType<typeof auth.getSession>>);
+
+      const result = await toggleCampaignStatusAction('');
+      expect(result).toEqual({ error: 'ID da campanha não informado' });
+    });
+
+    it('should return error if database update fails in toggle status', async () => {
+      vi.mocked(auth.getSession).mockResolvedValueOnce({
+        data: { user: { id: 'user-id' } },
+      } as unknown as Awaited<ReturnType<typeof auth.getSession>>);
+
+      const mockLimit = vi.fn().mockResolvedValueOnce([{ id: 'camp-1', userId: 'user-id', isActive: true }]);
+      const mockWhere = vi.fn().mockReturnValue({ limit: mockLimit });
+      const mockFrom = vi.fn().mockReturnValue({ where: mockWhere });
+      vi.mocked(db.select).mockReturnValue({ from: mockFrom } as unknown as ReturnType<typeof db.select>);
+
+      const mockUpdateWhere = vi.fn().mockRejectedValueOnce(new Error('Update failed'));
+      const mockUpdateSet = vi.fn().mockReturnValue({ where: mockUpdateWhere });
+      vi.mocked(db.update).mockReturnValue({ set: mockUpdateSet } as unknown as ReturnType<typeof db.update>);
+
+      const result = await toggleCampaignStatusAction('camp-1');
+      expect(result).toEqual({ error: 'Falha ao alterar o status da campanha' });
+    });
   });
 });
+
 
