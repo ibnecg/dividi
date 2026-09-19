@@ -16,7 +16,19 @@ export default defineConfig({
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
       include: ['src/**/*.ts', 'src/**/*.tsx'],
-      exclude: ['src/components/ui/**', 'src/**/*.test.ts', 'src/**/*.test.tsx'],
+      exclude: [
+        'src/components/ui/**',
+        'src/**/*.test.ts',
+        'src/**/*.test.tsx',
+        'src/test/**',
+        'src/db/seed.ts',
+      ],
+      thresholds: {
+        lines: 80,
+        functions: 80,
+        branches: 80,
+        statements: 80,
+      },
     },
   },
 });

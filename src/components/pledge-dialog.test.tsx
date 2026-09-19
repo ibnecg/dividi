@@ -211,4 +211,72 @@ describe('PledgeDialog Component', () => {
     fireEvent.keyDown(window, { key: 'Escape' });
     expect(screen.queryByRole('dialog')).toBeNull();
   });
+
+  it('uses document.execCommand fallback when navigator.clipboard.writeText fails', async () => {
+    Object.defineProperty(navigator, 'clipboard', {
+      value: {
+        writeText: vi.fn().mockRejectedValueOnce(new Error('Clipboard denied')),
+      },
+      writable: true,
+      configurable: true,
+    });
+
+    const execCommandMock = vi.fn().mockReturnValue(true);
+    Object.defineProperty(document, 'execCommand', {
+      value: execCommandMock,
+      writable: true,
+      configurable: true,
+    });
+
+    render(
+      <PledgeDialog
+        item={fixedPriceItem}
+        {...campaignProps}
+      />
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /doar/i }));
+    fireEvent.click(screen.getByRole('button', { name: /copiar código pix/i }));
+
+    await waitFor(() => {
+      expect(execCommandMock).toHaveBeenCalledWith('copy');
+      expect(screen.getByText('Copiado!')).toBeDefined();
+    });
+  });
+
+  it('displays error banner when pledgeDonationAction returns an error', async () => {
+    vi.mocked(actions.pledgeDonationAction).mockResolvedValueOnce({
+      error: 'Campanha não encontrada ou desativada.',
+    });
+
+    render(
+      <PledgeDialog
+        item={fixedPriceItem}
+        {...campaignProps}
+      />
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /doar/i }));
+    fireEvent.click(screen.getByRole('button', { name: /confirmar doação/i }));
+
+    expect(
+      await screen.findByText('Campanha não encontrada ou desativada.')
+    ).toBeDefined();
+  });
+
+  it('closes dialog and resets form when clicking close button', async () => {
+    render(
+      <PledgeDialog
+        item={fixedPriceItem}
+        {...campaignProps}
+      />
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /doar/i }));
+    expect(screen.getByRole('dialog')).toBeDefined();
+
+    fireEvent.click(screen.getByRole('button', { name: /fechar/i }));
+    expect(screen.queryByRole('dialog')).toBeNull();
+  });
 });
+
