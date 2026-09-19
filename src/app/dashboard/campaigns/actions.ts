@@ -6,6 +6,7 @@ import { auth } from '@/lib/auth/server';
 import { campaignSchema, type CampaignFormValues } from '@/lib/validations/campaign';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
+import crypto from 'crypto';
 
 export async function createCampaignAction(data: CampaignFormValues) {
   const { data: session } = await auth.getSession();
@@ -21,27 +22,40 @@ export async function createCampaignAction(data: CampaignFormValues) {
   const { name, description, pixKey, imageUrl, items } = parsed.data;
 
   try {
-    await db.transaction(async (tx) => {
-      const [insertedCampaign] = await tx.insert(campaigns).values({
+    const campaignId = crypto.randomUUID();
+
+    if (items && items.length > 0) {
+      const itemsToInsert = items.map((item) => ({
+        campaignId,
+        description: item.description,
+        amount: item.amount ? item.amount.toString() : null,
+        quantity: item.quantity,
+        imageUrl: item.imageUrl || null,
+      }));
+      
+      await db.batch([
+        db.insert(campaigns).values({
+          id: campaignId,
+          userId: session.user.id,
+          name,
+          description,
+          pixKey,
+          imageUrl: imageUrl || null,
+        }),
+        db.insert(campaignItems).values(itemsToInsert),
+      ]);
+    } else {
+      await db.insert(campaigns).values({
+        id: campaignId,
         userId: session.user.id,
         name,
         description,
         pixKey,
         imageUrl: imageUrl || null,
-      }).returning({ id: campaigns.id });
-
-      if (items && items.length > 0) {
-        const itemsToInsert = items.map((item) => ({
-          campaignId: insertedCampaign.id,
-          description: item.description,
-          amount: item.amount ? item.amount.toString() : null,
-          quantity: item.quantity,
-          imageUrl: item.imageUrl || null,
-        }));
-        await tx.insert(campaignItems).values(itemsToInsert);
-      }
-    });
-  } catch {
+      });
+    }
+  } catch (error) {
+    console.error('Error creating campaign:', error);
     return { error: 'Falha ao salvar a campanha' };
   }
 
