@@ -73,7 +73,7 @@ describe('createCampaignAction', () => {
         name: 'Valid Name',
         description: 'Valid description with enough characters',
         pixKey: 'valid-pix',
-        items: [{ description: 'Item 1', amount: 10 }],
+        items: [{ description: 'Item 1', amount: 10, quantity: 1 }],
       });
     } catch (e: unknown) {
       // Catch redirect which throws in Next.js
