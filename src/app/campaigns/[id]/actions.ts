@@ -3,7 +3,7 @@
 import { db } from '@/db';
 import { campaignItems, donations } from '@/db/schema';
 import { pledgeSchema, type PledgeFormValues } from '@/lib/validations/campaign';
-import { sql } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 
 export async function pledgeDonationAction(campaignId: string, data: PledgeFormValues) {
@@ -15,24 +15,32 @@ export async function pledgeDonationAction(campaignId: string, data: PledgeFormV
   const { campaignItemId, quantity, donorName, donorPhone, message } = parsed.data;
 
   try {
-    await db.transaction(async (tx) => {
-      const [updatedItem] = await tx.update(campaignItems)
-        .set({ quantity: sql`${campaignItems.quantity} - ${quantity}` })
-        .where(sql`${campaignItems.id} = ${campaignItemId} AND ${campaignItems.quantity} >= ${quantity}`)
-        .returning({ id: campaignItems.id });
+    const [updatedItem] = await db
+      .update(campaignItems)
+      .set({ quantity: sql`${campaignItems.quantity} - ${quantity}` })
+      .where(sql`${campaignItems.id} = ${campaignItemId} AND ${campaignItems.quantity} >= ${quantity}`)
+      .returning({ id: campaignItems.id });
 
-      if (!updatedItem) {
-        throw new Error('Quantidade indisponível ou item não encontrado');
-      }
+    if (!updatedItem) {
+      return { error: 'Quantidade indisponível ou item não encontrado' };
+    }
 
-      await tx.insert(donations).values({
+    try {
+      await db.insert(donations).values({
         campaignItemId,
         quantity,
         donorName: donorName || null,
         donorPhone: donorPhone || null,
         message: message || null,
       });
-    });
+    } catch (insertError) {
+      // Reverte a alteração de quantidade caso a inserção da doação falhe
+      await db
+        .update(campaignItems)
+        .set({ quantity: sql`${campaignItems.quantity} + ${quantity}` })
+        .where(eq(campaignItems.id, campaignItemId));
+      throw insertError;
+    }
   } catch (error: unknown) {
     const err = error as Error;
     return { error: err.message || 'Falha ao processar doação' };
