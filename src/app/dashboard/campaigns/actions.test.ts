@@ -13,7 +13,13 @@ vi.mock('@/lib/auth/server', () => ({
 
 vi.mock('@/db', () => ({
   db: {
-    transaction: vi.fn(),
+    batch: vi.fn(),
+    insert: vi.fn().mockReturnValue({
+      values: vi.fn().mockReturnValue({
+        returning: vi.fn().mockResolvedValue([{ id: 'new-campaign-id' }]),
+        onConflictDoNothing: vi.fn().mockResolvedValue({}),
+      }),
+    }),
   },
 }));
 
@@ -55,18 +61,7 @@ describe('createCampaignAction', () => {
       data: { user: { id: 'user-id' } } 
     } as unknown as Awaited<ReturnType<typeof auth.getSession>>);
 
-    vi.mocked(db.transaction).mockImplementationOnce(async (callback) => {
-      const txMock = {
-        insert: vi.fn().mockReturnValue({
-          values: vi.fn().mockReturnValue({
-            returning: vi.fn().mockResolvedValue([{ id: 'new-campaign-id' }]),
-            onConflictDoNothing: vi.fn().mockResolvedValue({}),
-          }),
-        }),
-      };
-      // @ts-expect-error Mocking tx object
-      await callback(txMock);
-    });
+    vi.mocked(db.batch).mockResolvedValueOnce([{}]);
 
     try {
       await createCampaignAction({
@@ -82,7 +77,7 @@ describe('createCampaignAction', () => {
       }
     }
 
-    expect(db.transaction).toHaveBeenCalled();
+    expect(db.batch).toHaveBeenCalled();
     expect(revalidatePath).toHaveBeenCalledWith('/dashboard/campaigns');
     expect(redirect).toHaveBeenCalledWith('/dashboard/campaigns');
   });
