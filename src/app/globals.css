@@ -1,12 +1,20 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *, .dark, .dark *));
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
   --color-border: var(--border);
   --color-ring: var(--ring);
   --color-destructive: var(--destructive);
@@ -23,11 +31,20 @@
   --background: #ffffff;
   --foreground: #000000;
   
+  --card: #ffffff;
+  --card-foreground: #000000;
+  
+  --popover: #ffffff;
+  --popover-foreground: #000000;
+  
   --primary: #000000;
   --primary-foreground: #ffffff;
   
   --muted: #f4f4f5;
   --muted-foreground: #71717a;
+  
+  --accent: #f4f4f5;
+  --accent-foreground: #000000;
   
   --border: #e4e4e7;
   --ring: #000000;
@@ -38,20 +55,48 @@
   --radius: 0.5rem;
 }
 
+.dark {
+  --background: #000000;
+  --foreground: #ffffff;
+  
+  --card: #09090b;
+  --card-foreground: #ffffff;
+  
+  --popover: #09090b;
+  --popover-foreground: #ffffff;
+  
+  --primary: #ffffff;
+  --primary-foreground: #000000;
+  
+  --muted: #27272a;
+  --muted-foreground: #a1a1aa;
+  
+  --accent: #27272a;
+  --accent-foreground: #ffffff;
+  
+  --border: #27272a;
+  --ring: #ffffff;
+  
+  --destructive: #7f1d1d;
+  --destructive-foreground: #ffffff;
+}
+
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not(.light) {
     --background: #000000;
     --foreground: #ffffff;
-    
+    --card: #09090b;
+    --card-foreground: #ffffff;
+    --popover: #09090b;
+    --popover-foreground: #ffffff;
     --primary: #ffffff;
     --primary-foreground: #000000;
-    
     --muted: #27272a;
     --muted-foreground: #a1a1aa;
-    
+    --accent: #27272a;
+    --accent-foreground: #ffffff;
     --border: #27272a;
     --ring: #ffffff;
-    
     --destructive: #7f1d1d;
     --destructive-foreground: #ffffff;
   }
@@ -60,5 +105,5 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
 }

@@ -7,6 +7,7 @@ import { Card, CardDescription, CardHeader, CardTitle, CardContent } from "@/com
 import { PledgeDialog } from "@/components/pledge-dialog"
 import { auth } from "@/lib/auth/server"
 import { AlertCircle } from "lucide-react"
+import { PublicHeader } from "@/components/public-header"
 
 interface PageProps {
   params: Promise<{ id: string }>
@@ -37,7 +38,9 @@ export default async function CampaignDetailsPage({ params }: PageProps) {
     .where(eq(campaignItems.campaignId, id))
 
   return (
-    <div className="container mx-auto py-12 px-4 max-w-4xl">
+    <div className="flex flex-col min-h-screen bg-background">
+      <PublicHeader />
+      <div className="container mx-auto py-12 px-4 max-w-4xl flex-1">
       {!campaign.isActive && (
         <div className="mb-8 p-4 bg-muted border border-border rounded-xl flex items-start gap-3">
           <AlertCircle className="w-5 h-5 text-muted-foreground shrink-0 mt-0.5" />
@@ -126,6 +129,7 @@ export default async function CampaignDetailsPage({ params }: PageProps) {
           ))}
         </div>
       )}
+      </div>
     </div>
   )
 }
