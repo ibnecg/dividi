@@ -59,8 +59,8 @@ describe('CampaignsPage', () => {
     expect(screen.getByText('Campanha de Alimentos')).toBeDefined()
     
     // Check if links exist
-    const links = screen.getAllByRole('link')
     // We expect links for "Ver Detalhes"
-    expect(links.length).toBe(2)
+    const detailLinks = screen.getAllByRole('link', { name: /ver detalhes/i });
+    expect(detailLinks.length).toBe(2)
   })
 })

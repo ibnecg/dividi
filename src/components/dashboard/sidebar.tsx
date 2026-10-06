@@ -6,6 +6,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { LogOut, LayoutDashboard, Megaphone, Menu, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
+import { ThemeToggle } from '@/components/theme-toggle';
 
 export default function Sidebar({ orgName }: { orgName: string }) {
   const router = useRouter();
@@ -112,6 +113,16 @@ export default function Sidebar({ orgName }: { orgName: string }) {
           <LogOut className={cn("h-4 w-4 shrink-0", !isCollapsed && "mr-3")} />
           {!isCollapsed && <span>Sair</span>}
         </button>
+      </div>
+      
+      {/* Theme Switcher */}
+      <div className={cn("px-4 pb-4 border-t-0", isCollapsed ? "px-2" : "")}>
+        {!isCollapsed && (
+          <div className="text-xs font-medium text-muted-foreground mb-1.5 px-1">
+            Tema
+          </div>
+        )}
+        <ThemeToggle variant={isCollapsed ? 'cycle' : 'segmented'} />
       </div>
     </div>
   );

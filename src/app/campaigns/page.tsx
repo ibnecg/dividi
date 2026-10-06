@@ -4,6 +4,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { desc, eq } from "drizzle-orm"
+import { PublicHeader } from "@/components/public-header"
 
 export default async function CampaignsPage() {
   const activeCampaigns = await db
@@ -13,7 +14,9 @@ export default async function CampaignsPage() {
     .orderBy(desc(campaigns.createdAt))
 
   return (
-    <div className="container mx-auto py-12 px-4 max-w-5xl">
+    <div className="flex flex-col min-h-screen bg-background">
+      <PublicHeader />
+      <div className="container mx-auto py-12 px-4 max-w-5xl flex-1">
       <h1 className="text-4xl font-bold tracking-tight mb-8">Campanhas Solidárias</h1>
       
       {activeCampaigns.length === 0 ? (
@@ -47,6 +50,7 @@ export default async function CampaignsPage() {
           ))}
         </div>
       )}
+      </div>
     </div>
   )
 }
