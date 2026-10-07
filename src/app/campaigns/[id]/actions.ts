@@ -10,7 +10,7 @@ export async function pledgeDonationAction(campaignId: string, data: PledgeFormV
     return { error: 'Dados inválidos' };
   }
 
-  const { campaignItemId, quantity, amount, donorName, donorPhone, message } = parsed.data;
+  const { campaignItemId, quantity, amount, donorName, donorPhone, message, donationType } = parsed.data;
 
   try {
     await expireOverdueDonations({ campaignId });
@@ -23,6 +23,7 @@ export async function pledgeDonationAction(campaignId: string, data: PledgeFormV
       donorName,
       donorPhone,
       message,
+      donationType,
     });
 
     if (!result) {

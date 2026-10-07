@@ -54,6 +54,9 @@ describe('CampaignDetailsPage', () => {
       id: '1',
       name: 'Campanha de Inverno',
       description: 'Doações de cobertores',
+      allowPix: true,
+      allowInPerson: true,
+      inPersonAddress: 'Rua Teste, 123',
       pixKey: '123.456.789-00',
       imageUrl: 'http://example.com/image.jpg',
       isActive: true,
@@ -85,6 +88,7 @@ describe('CampaignDetailsPage', () => {
     expect(screen.getByText('Campanha de Inverno')).toBeDefined()
     expect(screen.getByText('Doações de cobertores')).toBeDefined()
     expect(screen.getByText('123.456.789-00')).toBeDefined()
+    expect(screen.getByText('Rua Teste, 123')).toBeDefined()
     expect(screen.getByText('Cobertor Casal')).toBeDefined()
     expect(screen.getByText(/50,00/)).toBeDefined()
     expect(screen.getByText('Meias')).toBeDefined()
@@ -95,6 +99,8 @@ describe('CampaignDetailsPage', () => {
       id: '1',
       name: 'Campanha Vazia',
       description: 'Sem itens listados',
+      allowPix: false,
+      allowInPerson: false,
       pixKey: null,
       imageUrl: null,
       createdAt: new Date(),
@@ -115,6 +121,8 @@ describe('CampaignDetailsPage', () => {
       id: '1',
       name: 'Campanha Desativada',
       description: 'Campanha que foi encerrada',
+      allowPix: true,
+      allowInPerson: false,
       pixKey: '123.456.789-00',
       imageUrl: null,
       isActive: false,
@@ -154,6 +162,8 @@ describe('CampaignDetailsPage', () => {
       id: '1',
       name: 'Minha Campanha Desativada',
       description: 'Campanha de teste',
+      allowPix: true,
+      allowInPerson: false,
       pixKey: '123.456.789-00',
       imageUrl: null,
       isActive: false,

@@ -29,7 +29,13 @@ export const campaigns = pgTable('campaigns', {
   userId: text('user_id').notNull().references(() => users.id),
   name: text('name').notNull(),
   description: text('description').notNull(),
-  pixKey: text('pix_key').notNull(),
+  pixKey: text('pix_key'),
+  allowPix: boolean('allow_pix').default(true).notNull(),
+  allowInPerson: boolean('allow_in_person').default(false).notNull(),
+  inPersonAddress: text('in_person_address'),
+  inPersonDays: text('in_person_days'),
+  inPersonHours: text('in_person_hours'),
+  inPersonInstructions: text('in_person_instructions'),
   imageUrl: text('image_url'),
   isActive: boolean('is_active').default(true).notNull(),
   requiresApproval: boolean('requires_approval').default(false).notNull(),
@@ -55,6 +61,7 @@ export const donations = pgTable('donations', {
   donorPhone: text('donor_phone'),
   message: text('message'),
   status: varchar('status', { length: 20 }).default('approved').notNull(), // 'approved', 'pending', 'reversed'
+  donationType: varchar('donation_type', { length: 20 }).default('pix').notNull(),
   expiresAt: timestamp('expires_at', { withTimezone: true }),
   reviewedAt: timestamp('reviewed_at', { withTimezone: true }),
   reversalReason: varchar('reversal_reason', { length: 20 }), // 'rejected', 'expired'

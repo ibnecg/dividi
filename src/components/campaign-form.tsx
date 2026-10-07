@@ -11,7 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardHeader, CardContent, CardTitle } from '@/components/ui/card';
 import { upload } from '@vercel/blob/client';
-import { Plus, Trash2, Loader2, Download, Upload } from 'lucide-react';
+import { Plus, Trash2, Loader2, Download, Upload, Check } from 'lucide-react';
 import Papa from 'papaparse';
 
 interface CampaignFormProps {
@@ -37,7 +37,13 @@ export function CampaignForm({ campaignId, initialData }: CampaignFormProps = {}
     defaultValues: initialData || {
       name: '',
       description: '',
+      allowPix: true,
+      allowInPerson: false,
       pixKey: '',
+      inPersonAddress: '',
+      inPersonDays: '',
+      inPersonHours: '',
+      inPersonInstructions: '',
       imageUrl: '',
       requiresDonationApproval: false,
       items: [],
@@ -47,6 +53,8 @@ export function CampaignForm({ campaignId, initialData }: CampaignFormProps = {}
   const campaignImageUrl = watch('imageUrl');
   const watchedItems = watch('items');
   const requiresApproval = watch('requiresDonationApproval');
+  const allowPix = watch('allowPix');
+  const allowInPerson = watch('allowInPerson');
 
   const { fields, append, remove } = useFieldArray({
     control,
@@ -195,11 +203,96 @@ export function CampaignForm({ campaignId, initialData }: CampaignFormProps = {}
             {errors.description && <p className="text-sm text-destructive">{errors.description.message}</p>}
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="pixKey">Chave PIX *</Label>
-            <Input id="pixKey" {...register('pixKey')} placeholder="CPF, E-mail, Celular ou Chave Aleatória" />
-            {errors.pixKey && <p className="text-sm text-destructive">{errors.pixKey.message}</p>}
+          <div className="space-y-4 pt-4 border-t border-border">
+            <h3 className="text-lg font-medium">Formas de Doação Aceitas</h3>
+            
+            <div className="grid gap-4 md:grid-cols-2">
+              <label
+                className={`flex items-start gap-3 p-4 rounded-lg border cursor-pointer hover:bg-muted/50 transition-colors focus-within:ring-2 focus-within:ring-ring ${allowPix ? 'border-primary' : 'border-border'}`}
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    setValue('allowPix', !allowPix, { shouldValidate: true });
+                  }
+                }}
+              >
+                <input
+                  type="checkbox"
+                  className="sr-only"
+                  {...register('allowPix')}
+                />
+                <div className={`w-5 h-5 rounded border mt-0.5 flex items-center justify-center shrink-0 ${allowPix ? 'bg-primary border-primary text-primary-foreground' : 'border-input'}`}>
+                  {allowPix && <Check className="w-3.5 h-3.5" />}
+                </div>
+                <div>
+                  <p className="font-medium text-foreground">Doação via Pix</p>
+                  <p className="text-sm text-muted-foreground mt-1">Receber contribuições financeiras diretamente na sua conta.</p>
+                </div>
+              </label>
+
+              <label
+                className={`flex items-start gap-3 p-4 rounded-lg border cursor-pointer hover:bg-muted/50 transition-colors focus-within:ring-2 focus-within:ring-ring ${allowInPerson ? 'border-primary' : 'border-border'}`}
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    setValue('allowInPerson', !allowInPerson, { shouldValidate: true });
+                  }
+                }}
+              >
+                <input
+                  type="checkbox"
+                  className="sr-only"
+                  {...register('allowInPerson')}
+                />
+                <div className={`w-5 h-5 rounded border mt-0.5 flex items-center justify-center shrink-0 ${allowInPerson ? 'bg-primary border-primary text-primary-foreground' : 'border-input'}`}>
+                  {allowInPerson && <Check className="w-3.5 h-3.5" />}
+                </div>
+                <div>
+                  <p className="font-medium text-foreground">Entrega presencial</p>
+                  <p className="text-sm text-muted-foreground mt-1">Receber doações físicas de produtos diretamente no local.</p>
+                </div>
+              </label>
+            </div>
+            {errors.allowPix && <p className="text-sm text-destructive">{errors.allowPix.message}</p>}
           </div>
+
+          {allowPix && (
+            <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
+              <Label htmlFor="pixKey">Chave PIX *</Label>
+              <Input id="pixKey" {...register('pixKey')} placeholder="CPF, E-mail, Celular ou Chave Aleatória" />
+              {errors.pixKey && <p className="text-sm text-destructive">{errors.pixKey.message}</p>}
+            </div>
+          )}
+
+          {allowInPerson && (
+            <div className="space-y-4 animate-in fade-in slide-in-from-top-2 p-4 bg-muted/30 rounded-lg border border-border">
+              <h4 className="font-medium">Dados para Entrega</h4>
+              <div className="space-y-2">
+                <Label htmlFor="inPersonAddress">Endereço para entrega *</Label>
+                <Input id="inPersonAddress" {...register('inPersonAddress')} placeholder="Ex: Rua das Flores, 123 - Centro, São Paulo - SP" />
+                {errors.inPersonAddress && <p className="text-sm text-destructive">{errors.inPersonAddress.message}</p>}
+              </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="inPersonDays">Dias da semana disponíveis *</Label>
+                  <Input id="inPersonDays" {...register('inPersonDays')} placeholder="Ex: Segunda a Sexta-feira" />
+                  {errors.inPersonDays && <p className="text-sm text-destructive">{errors.inPersonDays.message}</p>}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="inPersonHours">Horários disponíveis *</Label>
+                  <Input id="inPersonHours" {...register('inPersonHours')} placeholder="Ex: 08:00 às 17:00" />
+                  {errors.inPersonHours && <p className="text-sm text-destructive">{errors.inPersonHours.message}</p>}
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="inPersonInstructions">Instruções adicionais de entrega (Opcional)</Label>
+                <Textarea id="inPersonInstructions" {...register('inPersonInstructions')} placeholder="Ex: Procurar por Mariana na portaria lateral" />
+                {errors.inPersonInstructions && <p className="text-sm text-destructive">{errors.inPersonInstructions.message}</p>}
+              </div>
+            </div>
+          )}
 
           <div className="space-y-2">
             <Label htmlFor="campaignImage">Imagem da Campanha (Opcional, máx 50kb)</Label>
