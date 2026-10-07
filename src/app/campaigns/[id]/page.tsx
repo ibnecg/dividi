@@ -104,11 +104,11 @@ export default async function CampaignDetailsPage({ params }: PageProps) {
                         <p className="text-muted-foreground">{campaign.inPersonAddress}</p>
                       </div>
                     )}
-                    {(campaign.inPersonDays || campaign.inPersonTimes) && (
+                    {(campaign.inPersonDays || campaign.inPersonHours) && (
                       <div>
                         <span className="font-medium text-foreground block mb-0.5">Horários de Recebimento:</span>
                         <p className="text-muted-foreground">
-                          {[campaign.inPersonDays, campaign.inPersonTimes].filter(Boolean).join(' • ')}
+                          {[campaign.inPersonDays, campaign.inPersonHours].filter(Boolean).join(' • ')}
                         </p>
                       </div>
                     )}
