@@ -19,6 +19,7 @@ export function ThemeToggle({ variant = 'dropdown', className }: ThemeToggleProp
   const dropdownRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
   }, []);
 

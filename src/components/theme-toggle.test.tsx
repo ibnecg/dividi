@@ -18,7 +18,8 @@ describe('ThemeToggle', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    (useTheme as any).mockReturnValue({
+    // @ts-expect-error - partial mock
+    vi.mocked(useTheme).mockReturnValue({
       theme: 'light',
       setTheme: mockSetTheme,
     });
@@ -62,7 +63,8 @@ describe('ThemeToggle', () => {
     expect(mockSetTheme).toHaveBeenCalledWith('dark');
 
     // Simula estado 'dark'
-    (useTheme as any).mockReturnValue({
+    // @ts-expect-error - partial mock
+    vi.mocked(useTheme).mockReturnValue({
       theme: 'dark',
       setTheme: mockSetTheme,
     });
