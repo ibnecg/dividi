@@ -93,7 +93,7 @@ export function PledgeDialog({ item, campaignId, campaignName, campaignPixKey, r
     } catch {
       return '';
     }
-  }, [campaignPixKey, calculatedAmount, campaignName]);
+  }, [campaignPixKey, calculatedAmount, campaignName, watchedDonationType]);
 
   // Format currency for display
   const formattedTotal = React.useMemo(() => {

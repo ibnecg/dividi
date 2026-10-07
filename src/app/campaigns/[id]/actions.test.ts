@@ -30,8 +30,8 @@ describe('pledgeDonationAction', () => {
 
   it('should return error if item has insufficient quantity or not found', async () => {
     vi.mocked(db.execute)
-      .mockResolvedValueOnce({ rows: [] } as any) // for expireOverdueDonations
-      .mockResolvedValueOnce({ rows: [] } as any); // for pledgeDonation
+      .mockResolvedValueOnce({ rows: [] } as never) // for expireOverdueDonations
+      .mockResolvedValueOnce({ rows: [] } as never); // for pledgeDonation
 
     const result = await pledgeDonationAction('camp-1', {
       campaignItemId: 'item-1',
@@ -44,8 +44,8 @@ describe('pledgeDonationAction', () => {
 
   it('should successfully record donation', async () => {
     vi.mocked(db.execute)
-      .mockResolvedValueOnce({ rows: [] } as any) // for expireOverdueDonations
-      .mockResolvedValueOnce({ rows: [{ id: 'donation-1', status: 'pending', expires_at: new Date() }] } as any); // for pledgeDonation
+      .mockResolvedValueOnce({ rows: [] } as never) // for expireOverdueDonations
+      .mockResolvedValueOnce({ rows: [{ id: 'donation-1', status: 'pending', expires_at: new Date() }] } as never); // for pledgeDonation
 
     const result = await pledgeDonationAction('camp-1', {
       campaignItemId: 'item-1',
@@ -64,7 +64,7 @@ describe('pledgeDonationAction', () => {
 
   it('should handle insertion failure', async () => {
     vi.mocked(db.execute)
-      .mockResolvedValueOnce({ rows: [] } as any) // for expireOverdueDonations
+      .mockResolvedValueOnce({ rows: [] } as never) // for expireOverdueDonations
       .mockRejectedValueOnce(new Error('Insert failed')); // for pledgeDonation
 
     const result = await pledgeDonationAction('camp-1', {
