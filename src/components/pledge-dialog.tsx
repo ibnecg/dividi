@@ -23,13 +23,15 @@ export interface PledgeDialogProps {
   campaignId: string;
   campaignName?: string;
   campaignPixKey?: string | null;
+  requiresApproval?: boolean;
 }
 
-export function PledgeDialog({ item, campaignId, campaignName, campaignPixKey }: PledgeDialogProps) {
+export function PledgeDialog({ item, campaignId, campaignName, campaignPixKey, requiresApproval = false }: PledgeDialogProps) {
   const [open, setOpen] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [copied, setCopied] = React.useState(false);
   const [isSuccess, setIsSuccess] = React.useState(false);
+  const [donationStatus, setDonationStatus] = React.useState<'approved' | 'pending' | 'reversed' | null>(null);
   const [customAmount, setCustomAmount] = React.useState<string>('10,00');
   const router = useRouter();
 
@@ -152,6 +154,7 @@ export function PledgeDialog({ item, campaignId, campaignName, campaignPixKey }:
   const handleClose = () => {
     setOpen(false);
     setIsSuccess(false);
+    setDonationStatus(null);
     setError(null);
     reset();
     if (isSuccess) {
@@ -161,10 +164,21 @@ export function PledgeDialog({ item, campaignId, campaignName, campaignPixKey }:
 
   const onSubmit = async (data: PledgeFormValues) => {
     setError(null);
-    const result = await pledgeDonationAction(campaignId, data);
+    if (!hasFixedPrice && customAmountError) {
+      setError(customAmountError);
+      return;
+    }
+    
+    const payload = {
+      ...data,
+      amount: hasFixedPrice ? undefined : calculatedAmount,
+    };
+
+    const result = await pledgeDonationAction(campaignId, payload);
     if (result?.error) {
       setError(result.error);
     } else {
+      setDonationStatus(result.status || 'approved');
       setIsSuccess(true);
     }
   };
@@ -206,10 +220,21 @@ export function PledgeDialog({ item, campaignId, campaignName, campaignPixKey }:
                   <div className="p-4 bg-primary/10 border border-primary/20 rounded-lg flex items-start gap-3">
                     <CheckCircle2 className="w-5 h-5 text-primary shrink-0 mt-0.5" />
                     <div>
-                      <h3 className="font-semibold text-foreground">Doação registrada com sucesso!</h3>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        Sua intenção de doação foi confirmada. Utilize o código PIX abaixo para realizar o pagamento no seu banco:
-                      </p>
+                      {donationStatus === 'pending' ? (
+                        <>
+                          <h3 className="font-semibold text-foreground">Doação reservada! Aguardando confirmação do organizador</h3>
+                          <p className="text-sm text-muted-foreground mt-1">
+                            O organizador tem até 72 horas para confirmar. Se não for confirmada, o item volta a ficar disponível. Utilize o código PIX abaixo para realizar o pagamento no seu banco:
+                          </p>
+                        </>
+                      ) : (
+                        <>
+                          <h3 className="font-semibold text-foreground">Doação registrada com sucesso!</h3>
+                          <p className="text-sm text-muted-foreground mt-1">
+                            Sua intenção de doação foi confirmada. Utilize o código PIX abaixo para realizar o pagamento no seu banco:
+                          </p>
+                        </>
+                      )}
                     </div>
                   </div>
 
@@ -241,7 +266,7 @@ export function PledgeDialog({ item, campaignId, campaignName, campaignPixKey }:
                       >
                         {copied ? (
                           <>
-                            <Check className="w-4 h-4 text-green-600" />
+                            <Check className="w-4 h-4 text-primary" />
                             <span>Copiado!</span>
                           </>
                         ) : (
@@ -263,6 +288,12 @@ export function PledgeDialog({ item, campaignId, campaignName, campaignPixKey }:
                 </div>
               ) : (
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+                  {requiresApproval && (
+                    <div className="p-3 bg-muted border border-border rounded-md text-sm text-muted-foreground">
+                      Esta campanha confirma as doações manualmente. Sua doação ficará reservada por até 72 horas aguardando a confirmação do organizador.
+                    </div>
+                  )}
+
                   {error && (
                     <div className="p-3 bg-destructive/10 text-destructive border border-destructive rounded-md text-sm">
                       {error}
@@ -327,7 +358,7 @@ export function PledgeDialog({ item, campaignId, campaignName, campaignPixKey }:
                       >
                         {copied ? (
                           <>
-                            <Check className="w-4 h-4 text-green-600" />
+                            <Check className="w-4 h-4 text-primary" />
                             <span>Copiado!</span>
                           </>
                         ) : (

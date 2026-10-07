@@ -41,6 +41,7 @@ export default async function EditCampaignPage({ params }: EditCampaignPageProps
     description: campaign.description,
     pixKey: campaign.pixKey,
     imageUrl: campaign.imageUrl || '',
+    requiresDonationApproval: campaign.requiresApproval,
     items: items.map((item) => ({
       id: item.id,
       description: item.description,

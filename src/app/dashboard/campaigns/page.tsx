@@ -68,6 +68,11 @@ export default async function CampaignsPage() {
                   </span>
                 </div>
                 <CardDescription className="line-clamp-2">{campaign.description}</CardDescription>
+                {campaign.requiresApproval && (
+                  <span className="inline-block mt-2 text-[10px] uppercase tracking-wider font-semibold text-muted-foreground bg-muted/50 px-2 py-0.5 rounded-sm border border-border">
+                    Aprovação Manual
+                  </span>
+                )}
               </CardHeader>
               <CardContent className="mt-auto">
                 <div className="text-xs text-muted-foreground">

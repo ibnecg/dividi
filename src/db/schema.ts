@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, primaryKey, numeric, integer, boolean } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, primaryKey, numeric, integer, boolean, varchar, index } from 'drizzle-orm/pg-core';
 
 export const users = pgTable('users', {
   id: text('id').primaryKey(), // Matching the auth provider's user ID
@@ -32,6 +32,7 @@ export const campaigns = pgTable('campaigns', {
   pixKey: text('pix_key').notNull(),
   imageUrl: text('image_url'),
   isActive: boolean('is_active').default(true).notNull(),
+  requiresApproval: boolean('requires_approval').default(false).notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
@@ -53,5 +54,16 @@ export const donations = pgTable('donations', {
   donorName: text('donor_name'),
   donorPhone: text('donor_phone'),
   message: text('message'),
+  status: varchar('status', { length: 20 }).default('approved').notNull(), // 'approved', 'pending', 'reversed'
+  expiresAt: timestamp('expires_at', { withTimezone: true }),
+  reviewedAt: timestamp('reviewed_at', { withTimezone: true }),
+  reversalReason: varchar('reversal_reason', { length: 20 }), // 'rejected', 'expired'
+  amount: numeric('amount', { precision: 10, scale: 2 }),
+  donatedAt: timestamp('donated_at'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => {
+  return {
+    statusExpiresIdx: index('donations_status_expires_at_idx').on(table.status, table.expiresAt),
+    campaignItemIdIdx: index('donations_campaign_item_id_idx').on(table.campaignItemId),
+  };
 });

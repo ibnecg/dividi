@@ -39,12 +39,14 @@ export function CampaignForm({ campaignId, initialData }: CampaignFormProps = {}
       description: '',
       pixKey: '',
       imageUrl: '',
+      requiresDonationApproval: false,
       items: [],
     },
   });
 
   const campaignImageUrl = watch('imageUrl');
   const watchedItems = watch('items');
+  const requiresApproval = watch('requiresDonationApproval');
 
   const { fields, append, remove } = useFieldArray({
     control,
@@ -215,6 +217,65 @@ export function CampaignForm({ campaignId, initialData }: CampaignFormProps = {}
               disabled={isUploading}
             />
           </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Confirmação de Doações</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <label
+            className="flex items-start gap-3 p-4 rounded-lg border border-border cursor-pointer hover:bg-muted/50 transition-colors focus-within:ring-2 focus-within:ring-ring"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                setValue('requiresDonationApproval', false);
+              }
+            }}
+          >
+            <input
+              type="radio"
+              name="requiresDonationApproval"
+              className="sr-only"
+              checked={!requiresApproval}
+              onChange={() => setValue('requiresDonationApproval', false, { shouldValidate: true })}
+            />
+            <div className={`w-4 h-4 rounded-full border border-primary mt-1 flex items-center justify-center shrink-0 ${!requiresApproval ? 'bg-primary' : ''}`}>
+              {!requiresApproval && <div className="w-2 h-2 rounded-full bg-background" />}
+            </div>
+            <div>
+              <p className="font-medium text-foreground">Aprovação automática</p>
+              <p className="text-sm text-muted-foreground mt-1">A doação é registrada e o item baixado imediatamente.</p>
+            </div>
+          </label>
+
+          <label
+            className="flex items-start gap-3 p-4 rounded-lg border border-border cursor-pointer hover:bg-muted/50 transition-colors focus-within:ring-2 focus-within:ring-ring"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                setValue('requiresDonationApproval', true);
+              }
+            }}
+          >
+            <input
+              type="radio"
+              name="requiresDonationApproval"
+              className="sr-only"
+              checked={requiresApproval}
+              onChange={() => setValue('requiresDonationApproval', true, { shouldValidate: true })}
+            />
+            <div className={`w-4 h-4 rounded-full border border-primary mt-1 flex items-center justify-center shrink-0 ${requiresApproval ? 'bg-primary' : ''}`}>
+              {requiresApproval && <div className="w-2 h-2 rounded-full bg-background" />}
+            </div>
+            <div>
+              <p className="font-medium text-foreground">Requer minha aprovação</p>
+              <p className="text-sm text-muted-foreground mt-1">O item é reservado e você tem 72h para aprovar ou reprovar. Sem resposta, a doação é estornada automaticamente.</p>
+            </div>
+          </label>
         </CardContent>
       </Card>
 

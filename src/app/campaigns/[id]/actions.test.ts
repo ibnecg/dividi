@@ -9,8 +9,7 @@ vi.mock('next/cache', () => ({
 
 vi.mock('@/db', () => ({
   db: {
-    update: vi.fn(),
-    insert: vi.fn(),
+    execute: vi.fn(),
   },
 }));
 
@@ -29,11 +28,9 @@ describe('pledgeDonationAction', () => {
   });
 
   it('should return error if item has insufficient quantity or not found', async () => {
-    const mockWhere = vi.fn().mockReturnValue({
-      returning: vi.fn().mockResolvedValue([]),
-    });
-    const mockSet = vi.fn().mockReturnValue({ where: mockWhere });
-    vi.mocked(db.update).mockReturnValue({ set: mockSet } as unknown as ReturnType<typeof db.update>);
+    vi.mocked(db.execute)
+      .mockResolvedValueOnce({ rows: [] } as any) // for expireOverdueDonations
+      .mockResolvedValueOnce({ rows: [] } as any); // for pledgeDonation
 
     const result = await pledgeDonationAction('camp-1', {
       campaignItemId: 'item-1',
@@ -43,15 +40,10 @@ describe('pledgeDonationAction', () => {
     expect(result).toEqual({ error: 'Quantidade indisponível ou item não encontrado' });
   });
 
-  it('should successfully record donation and update item quantity', async () => {
-    const mockWhere = vi.fn().mockReturnValue({
-      returning: vi.fn().mockResolvedValue([{ id: 'item-1' }]),
-    });
-    const mockSet = vi.fn().mockReturnValue({ where: mockWhere });
-    vi.mocked(db.update).mockReturnValue({ set: mockSet } as unknown as ReturnType<typeof db.update>);
-
-    const mockValues = vi.fn().mockResolvedValue([{}]);
-    vi.mocked(db.insert).mockReturnValue({ values: mockValues } as unknown as ReturnType<typeof db.insert>);
+  it('should successfully record donation', async () => {
+    vi.mocked(db.execute)
+      .mockResolvedValueOnce({ rows: [] } as any) // for expireOverdueDonations
+      .mockResolvedValueOnce({ rows: [{ id: 'donation-1', status: 'pending', expires_at: new Date() }] } as any); // for pledgeDonation
 
     const result = await pledgeDonationAction('camp-1', {
       campaignItemId: 'item-1',
@@ -61,29 +53,22 @@ describe('pledgeDonationAction', () => {
       message: 'Boa sorte!',
     });
 
-    expect(result).toEqual({ success: true });
-    expect(db.update).toHaveBeenCalledTimes(1);
-    expect(db.insert).toHaveBeenCalledTimes(1);
+    expect(result.success).toBe(true);
+    expect(result.status).toBe('pending');
+    expect(db.execute).toHaveBeenCalledTimes(2);
     expect(revalidatePath).toHaveBeenCalledWith('/campaigns/camp-1');
   });
 
-  it('should rollback quantity decrement if donation insert fails', async () => {
-    const mockWhere = vi.fn().mockReturnValue({
-      returning: vi.fn().mockResolvedValue([{ id: 'item-1' }]),
-    });
-    const mockSet = vi.fn().mockReturnValue({ where: mockWhere });
-    vi.mocked(db.update).mockReturnValue({ set: mockSet } as unknown as ReturnType<typeof db.update>);
-
-    const mockValues = vi.fn().mockRejectedValue(new Error('Insert failed'));
-    vi.mocked(db.insert).mockReturnValue({ values: mockValues } as unknown as ReturnType<typeof db.insert>);
+  it('should handle insertion failure', async () => {
+    vi.mocked(db.execute)
+      .mockResolvedValueOnce({ rows: [] } as any) // for expireOverdueDonations
+      .mockRejectedValueOnce(new Error('Insert failed')); // for pledgeDonation
 
     const result = await pledgeDonationAction('camp-1', {
       campaignItemId: 'item-1',
       quantity: 2,
     });
 
-    expect(result).toEqual({ error: 'Insert failed' });
-    // Verify rollback update was called
-    expect(db.update).toHaveBeenCalledTimes(2);
+    expect(result).toEqual({ error: 'Falha ao processar doação' });
   });
 });

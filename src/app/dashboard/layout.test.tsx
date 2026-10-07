@@ -13,6 +13,18 @@ vi.mock('@/components/dashboard/sidebar', () => ({
   ),
 }));
 
+vi.mock('@/db', () => ({
+  db: {
+    select: vi.fn(),
+  },
+}));
+
+vi.mock('@/lib/auth/server', () => ({
+  auth: {
+    getSession: vi.fn().mockResolvedValue({ data: null }),
+  },
+}));
+
 describe('DashboardLayout', () => {
   it('renders layout with fetched org name and children', async () => {
     vi.mocked(getUserOrganizationName).mockResolvedValueOnce('Instituto Solidário');
