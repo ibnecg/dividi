@@ -24,9 +24,11 @@ export interface PledgeDialogProps {
   campaignName?: string;
   campaignPixKey?: string | null;
   requiresApproval?: boolean;
+  allowPix?: boolean;
+  allowInPerson?: boolean;
 }
 
-export function PledgeDialog({ item, campaignId, campaignName, campaignPixKey, requiresApproval = false }: PledgeDialogProps) {
+export function PledgeDialog({ item, campaignId, campaignName, campaignPixKey, requiresApproval = false, allowPix = true, allowInPerson = false }: PledgeDialogProps) {
   const [open, setOpen] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [copied, setCopied] = React.useState(false);
@@ -49,6 +51,7 @@ export function PledgeDialog({ item, campaignId, campaignName, campaignPixKey, r
     defaultValues: {
       campaignItemId: item.id,
       quantity: 1,
+      donationType: allowPix ? 'pix' : 'in_person',
       donorName: '',
       donorPhone: '',
       message: '',
@@ -56,6 +59,7 @@ export function PledgeDialog({ item, campaignId, campaignName, campaignPixKey, r
   });
 
   const watchedQuantity = useWatch({ control, name: 'quantity' });
+  const watchedDonationType = useWatch({ control, name: 'donationType' });
   const quantity = Number(watchedQuantity) || 1;
 
   // Calculate donation amount
@@ -77,7 +81,7 @@ export function PledgeDialog({ item, campaignId, campaignName, campaignPixKey, r
 
   // Generate PIX payload dynamically
   const pixCode = React.useMemo(() => {
-    if (!campaignPixKey || calculatedAmount < 1.0) {
+    if (!campaignPixKey || calculatedAmount < 1.0 || watchedDonationType !== 'pix') {
       return '';
     }
     try {
@@ -224,14 +228,18 @@ export function PledgeDialog({ item, campaignId, campaignName, campaignPixKey, r
                         <>
                           <h3 className="font-semibold text-foreground">Doação reservada! Aguardando confirmação do organizador</h3>
                           <p className="text-sm text-muted-foreground mt-1">
-                            O organizador tem até 72 horas para confirmar. Se não for confirmada, o item volta a ficar disponível. Utilize o código PIX abaixo para realizar o pagamento no seu banco:
+                            O organizador tem até 72 horas para confirmar. Se não for confirmada, o item volta a ficar disponível. 
+                            {watchedDonationType === 'pix' && ' Utilize o código PIX abaixo para realizar o pagamento no seu banco:'}
                           </p>
                         </>
                       ) : (
                         <>
                           <h3 className="font-semibold text-foreground">Doação registrada com sucesso!</h3>
                           <p className="text-sm text-muted-foreground mt-1">
-                            Sua intenção de doação foi confirmada. Utilize o código PIX abaixo para realizar o pagamento no seu banco:
+                            Sua intenção de doação foi confirmada.
+                            {watchedDonationType === 'pix' 
+                              ? ' Utilize o código PIX abaixo para realizar o pagamento no seu banco:'
+                              : ' Verifique as instruções de entrega presencial na página da campanha.'}
                           </p>
                         </>
                       )}
@@ -300,6 +308,28 @@ export function PledgeDialog({ item, campaignId, campaignName, campaignPixKey, r
                     </div>
                   )}
 
+                  {allowPix && allowInPerson && (
+                    <div className="space-y-3">
+                      <Label>Forma de Doação *</Label>
+                      <div className="flex flex-col gap-2 sm:flex-row">
+                        <label className={`flex flex-1 items-center gap-3 rounded-lg border p-3 cursor-pointer transition-colors ${watchedDonationType === 'pix' ? 'border-primary bg-primary/5' : 'border-border hover:bg-muted/50'}`}>
+                          <input type="radio" value="pix" {...register('donationType')} className="sr-only" />
+                          <div className={`h-4 w-4 rounded-full border flex items-center justify-center ${watchedDonationType === 'pix' ? 'border-primary' : 'border-input'}`}>
+                            {watchedDonationType === 'pix' && <div className="h-2 w-2 rounded-full bg-primary" />}
+                          </div>
+                          <span className="text-sm font-medium">PIX</span>
+                        </label>
+                        <label className={`flex flex-1 items-center gap-3 rounded-lg border p-3 cursor-pointer transition-colors ${watchedDonationType === 'in_person' ? 'border-primary bg-primary/5' : 'border-border hover:bg-muted/50'}`}>
+                          <input type="radio" value="in_person" {...register('donationType')} className="sr-only" />
+                          <div className={`h-4 w-4 rounded-full border flex items-center justify-center ${watchedDonationType === 'in_person' ? 'border-primary' : 'border-input'}`}>
+                            {watchedDonationType === 'in_person' && <div className="h-2 w-2 rounded-full bg-primary" />}
+                          </div>
+                          <span className="text-sm font-medium">Entrega Presencial</span>
+                        </label>
+                      </div>
+                    </div>
+                  )}
+
                   <div className="space-y-2">
                     <Label htmlFor={`qty-${item.id}`}>Quantidade (Máximo: {item.quantity}) *</Label>
                     <Input
@@ -334,49 +364,51 @@ export function PledgeDialog({ item, campaignId, campaignName, campaignPixKey, r
                   )}
 
                   {/* PIX Code display & copy area */}
-                  {pixCode ? (
-                    <div className="space-y-3 p-4 bg-muted/40 border border-border rounded-lg">
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="flex items-center gap-1.5 font-medium text-foreground">
-                          <QrCode className="w-4 h-4" />
-                          PIX Copia e Cola
-                        </span>
-                        <span className="text-xs text-muted-foreground">Valor embutido</span>
+                  {watchedDonationType === 'pix' && (
+                    pixCode ? (
+                      <div className="space-y-3 p-4 bg-muted/40 border border-border rounded-lg">
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="flex items-center gap-1.5 font-medium text-foreground">
+                            <QrCode className="w-4 h-4" />
+                            PIX Copia e Cola
+                          </span>
+                          <span className="text-xs text-muted-foreground">Valor embutido</span>
+                        </div>
+                        <Textarea
+                          readOnly
+                          value={pixCode}
+                          rows={2}
+                          className="font-mono text-xs break-all bg-background resize-none focus-visible:ring-1 focus-visible:ring-ring"
+                          aria-label="Código PIX Copia e Cola"
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={handleCopy}
+                          className="w-full flex items-center justify-center gap-2"
+                        >
+                          {copied ? (
+                            <>
+                              <Check className="w-4 h-4 text-primary" />
+                              <span>Copiado!</span>
+                            </>
+                          ) : (
+                            <>
+                              <Copy className="w-4 h-4" />
+                              <span>Copiar Código PIX</span>
+                            </>
+                          )}
+                        </Button>
+                        <p className="text-xs text-muted-foreground text-center">
+                          Abra o app do seu banco, escolha Pix &gt; Copia e Cola e cole o código.
+                        </p>
                       </div>
-                      <Textarea
-                        readOnly
-                        value={pixCode}
-                        rows={2}
-                        className="font-mono text-xs break-all bg-background resize-none focus-visible:ring-1 focus-visible:ring-ring"
-                        aria-label="Código PIX Copia e Cola"
-                      />
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={handleCopy}
-                        className="w-full flex items-center justify-center gap-2"
-                      >
-                        {copied ? (
-                          <>
-                            <Check className="w-4 h-4 text-primary" />
-                            <span>Copiado!</span>
-                          </>
-                        ) : (
-                          <>
-                            <Copy className="w-4 h-4" />
-                            <span>Copiar Código PIX</span>
-                          </>
-                        )}
-                      </Button>
-                      <p className="text-xs text-muted-foreground text-center">
-                        Abra o app do seu banco, escolha Pix &gt; Copia e Cola e cole o código.
-                      </p>
-                    </div>
-                  ) : (
-                    !hasFixedPrice && (
-                      <div className="p-3 bg-muted/30 border border-border rounded-lg text-xs text-muted-foreground text-center">
-                        Defina o valor da doação para gerar o código PIX.
-                      </div>
+                    ) : (
+                      !hasFixedPrice && (
+                        <div className="p-3 bg-muted/30 border border-border rounded-lg text-xs text-muted-foreground text-center">
+                          Defina o valor da doação para gerar o código PIX.
+                        </div>
+                      )
                     )
                   )}
 

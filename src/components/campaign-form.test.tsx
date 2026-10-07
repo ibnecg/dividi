@@ -33,6 +33,8 @@ describe('CampaignForm Component', () => {
     const initialData = {
       name: 'Campanha Agasalho',
       description: 'Campanha de arrecadação de agasalhos',
+      allowPix: true,
+      allowInPerson: false,
       pixKey: 'contato@ong.org',
       imageUrl: 'https://blob.url/capa.jpg',
       requiresDonationApproval: false,
@@ -184,6 +186,8 @@ describe('CampaignForm Component', () => {
     const initialData = {
       name: 'Campanha Existente',
       description: 'Descrição inicial com pelo menos dez caracteres',
+      allowPix: true,
+      allowInPerson: false,
       pixKey: 'pix@chave.com',
       imageUrl: '',
       requiresDonationApproval: false,

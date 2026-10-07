@@ -20,7 +20,7 @@ export async function createCampaignAction(data: CampaignFormValues) {
     return { error: 'Dados inválidos' };
   }
 
-  const { name, description, pixKey, imageUrl, requiresDonationApproval, items } = parsed.data;
+  const { name, description, pixKey, imageUrl, requiresDonationApproval, items, allowPix, allowInPerson, inPersonAddress, inPersonDays, inPersonHours, inPersonInstructions } = parsed.data;
 
   try {
     const campaignId = crypto.randomUUID();
@@ -40,7 +40,13 @@ export async function createCampaignAction(data: CampaignFormValues) {
           userId: session.user.id,
           name,
           description,
-          pixKey,
+          allowPix,
+          allowInPerson,
+          pixKey: pixKey || null,
+          inPersonAddress: inPersonAddress || null,
+          inPersonDays: inPersonDays || null,
+          inPersonHours: inPersonHours || null,
+          inPersonInstructions: inPersonInstructions || null,
           imageUrl: imageUrl || null,
           requiresApproval: requiresDonationApproval,
         }),
@@ -52,7 +58,13 @@ export async function createCampaignAction(data: CampaignFormValues) {
         userId: session.user.id,
         name,
         description,
-        pixKey,
+        allowPix,
+        allowInPerson,
+        pixKey: pixKey || null,
+        inPersonAddress: inPersonAddress || null,
+        inPersonDays: inPersonDays || null,
+        inPersonHours: inPersonHours || null,
+        inPersonInstructions: inPersonInstructions || null,
         imageUrl: imageUrl || null,
         requiresApproval: requiresDonationApproval,
       });
@@ -96,7 +108,7 @@ export async function updateCampaignAction(campaignId: string, data: CampaignFor
     return { error: 'Dados inválidos' };
   }
 
-  const { name, description, pixKey, imageUrl, requiresDonationApproval, items } = parsed.data;
+  const { name, description, pixKey, imageUrl, requiresDonationApproval, items, allowPix, allowInPerson, inPersonAddress, inPersonDays, inPersonHours, inPersonInstructions } = parsed.data;
 
   try {
     const currentItems = await db
@@ -119,7 +131,13 @@ export async function updateCampaignAction(campaignId: string, data: CampaignFor
         .set({
           name,
           description,
-          pixKey,
+          allowPix,
+          allowInPerson,
+          pixKey: pixKey || null,
+          inPersonAddress: inPersonAddress || null,
+          inPersonDays: inPersonDays || null,
+          inPersonHours: inPersonHours || null,
+          inPersonInstructions: inPersonInstructions || null,
           imageUrl: imageUrl || null,
           requiresApproval: requiresDonationApproval,
           updatedAt: new Date(),

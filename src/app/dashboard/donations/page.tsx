@@ -32,6 +32,7 @@ export default async function DonationsPage() {
       expiresAt: donations.expiresAt,
       amount: donations.amount,
       reversalReason: donations.reversalReason,
+      donationType: donations.donationType,
       campaignName: campaigns.name,
       campaignId: campaigns.id,
       itemDescription: campaignItems.description,
@@ -82,9 +83,16 @@ export default async function DonationsPage() {
                           <span className="text-sm font-medium">{donation.itemDescription}</span>
                         </div>
                         <h3 className="text-lg font-semibold">{donation.donorName}</h3>
-                        <p className="text-sm text-muted-foreground">
-                          {donation.donorPhone}
-                        </p>
+                        <div className="flex items-center gap-2 mt-1">
+                          {donation.donationType === 'pix' ? (
+                            <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">PIX</Badge>
+                          ) : (
+                            <Badge variant="outline" className="bg-blue-500/10 text-blue-700 border-blue-200 dark:text-blue-400 dark:border-blue-900">Presencial</Badge>
+                          )}
+                          <p className="text-sm text-muted-foreground">
+                            {donation.donorPhone}
+                          </p>
+                        </div>
                       </div>
                       
                       <div className="text-sm bg-yellow-500/10 text-yellow-800 dark:text-yellow-500 px-3 py-2 rounded-md w-fit">
@@ -122,6 +130,7 @@ export default async function DonationsPage() {
                   <tr>
                     <th className="px-4 py-3 font-medium">Doador</th>
                     <th className="px-4 py-3 font-medium">Campanha / Item</th>
+                    <th className="px-4 py-3 font-medium">Método</th>
                     <th className="px-4 py-3 font-medium">Data</th>
                     <th className="px-4 py-3 font-medium">Status</th>
                   </tr>
@@ -136,6 +145,13 @@ export default async function DonationsPage() {
                       <td className="px-4 py-4">
                         <div className="font-medium truncate max-w-[200px]" title={donation.campaignName}>{donation.campaignName}</div>
                         <div className="text-muted-foreground text-xs truncate max-w-[200px]">{donation.itemDescription}</div>
+                      </td>
+                      <td className="px-4 py-4">
+                        {donation.donationType === 'pix' ? (
+                          <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 font-medium">PIX</Badge>
+                        ) : (
+                          <Badge variant="outline" className="bg-blue-500/10 text-blue-700 border-blue-200 dark:text-blue-400 dark:border-blue-900 font-medium">Presencial</Badge>
+                        )}
                       </td>
                       <td className="px-4 py-4 text-muted-foreground">
                         {new Date(donation.donatedAt!).toLocaleDateString('pt-BR')}
