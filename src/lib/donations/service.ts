@@ -46,7 +46,7 @@ export async function expireOverdueDonations(params: { campaignId?: string } = {
       FROM campaign_items ci
       WHERE d.campaign_item_id = ci.id
         AND d.status = 'pending' AND d.expires_at <= now()
-        AND (${params.campaignId ?? null}::text IS NULL OR ci.campaign_id = ${params.campaignId})
+        AND (${params.campaignId ?? null}::text IS NULL OR ci.campaign_id = ${params.campaignId ?? null})
       RETURNING d.campaign_item_id, d.quantity, ci.campaign_id
     ), totals AS (
       SELECT campaign_item_id, campaign_id, SUM(quantity)::int AS qty FROM expired GROUP BY 1, 2
