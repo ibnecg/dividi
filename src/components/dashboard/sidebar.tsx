@@ -3,12 +3,12 @@
 import { useState } from 'react';
 import { authClient } from '@/lib/auth/client';
 import { useRouter, usePathname } from 'next/navigation';
-import { LogOut, LayoutDashboard, Megaphone, Menu, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { LogOut, LayoutDashboard, Megaphone, Menu, X, ChevronLeft, ChevronRight, Inbox } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { ThemeToggle } from '@/components/theme-toggle';
 
-export default function Sidebar({ orgName }: { orgName: string }) {
+export default function Sidebar({ orgName, pendingDonationsCount = 0 }: { orgName: string, pendingDonationsCount?: number }) {
   const router = useRouter();
   const pathname = usePathname();
   const { data: session } = authClient.useSession();
@@ -32,6 +32,12 @@ export default function Sidebar({ orgName }: { orgName: string }) {
   const navLinks = [
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
     { name: 'Campanhas', href: '/dashboard/campaigns', icon: Megaphone },
+    { 
+      name: 'Doações', 
+      href: '/dashboard/donations', 
+      icon: Inbox,
+      badge: pendingDonationsCount > 0 ? pendingDonationsCount : undefined 
+    },
   ];
 
   const sidebarContent = (
@@ -71,11 +77,21 @@ export default function Sidebar({ orgName }: { orgName: string }) {
                 isActive 
                   ? "bg-accent text-accent-foreground" 
                   : "text-muted-foreground hover:bg-accent/50 hover:text-foreground",
-                isCollapsed ? "justify-center px-0" : "px-3"
+                isCollapsed ? "justify-center px-0 relative" : "px-3"
               )}
             >
               <Icon className={cn("h-4 w-4 shrink-0", !isCollapsed && "mr-3")} />
-              {!isCollapsed && <span>{link.name}</span>}
+              {!isCollapsed && <span className="flex-1 text-left">{link.name}</span>}
+              {!isCollapsed && link.badge && (
+                <span className="ml-auto bg-primary text-primary-foreground text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-5 text-center">
+                  {link.badge}
+                </span>
+              )}
+              {isCollapsed && link.badge && (
+                <span className="absolute top-1 right-1 bg-primary text-primary-foreground text-[8px] font-bold px-1 py-0 rounded-full min-w-4 text-center">
+                  {link.badge}
+                </span>
+              )}
             </Link>
           );
         })}

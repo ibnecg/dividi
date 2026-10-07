@@ -153,7 +153,11 @@ describe('PledgeDialog Component', () => {
   });
 
   it('submits pledge and displays post-confirmation screen with copyable PIX code', async () => {
-    vi.mocked(actions.pledgeDonationAction).mockResolvedValueOnce({ success: true });
+    vi.mocked(actions.pledgeDonationAction).mockResolvedValueOnce({ 
+      success: true, 
+      status: 'approved', 
+      expiresAt: new Date() 
+    });
 
     render(
       <PledgeDialog

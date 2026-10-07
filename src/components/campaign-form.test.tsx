@@ -35,6 +35,7 @@ describe('CampaignForm Component', () => {
       description: 'Campanha de arrecadação de agasalhos',
       pixKey: 'contato@ong.org',
       imageUrl: 'https://blob.url/capa.jpg',
+      requiresDonationApproval: false,
       items: [
         {
           id: 'item-1',
@@ -185,6 +186,7 @@ describe('CampaignForm Component', () => {
       description: 'Descrição inicial com pelo menos dez caracteres',
       pixKey: 'pix@chave.com',
       imageUrl: '',
+      requiresDonationApproval: false,
       items: [],
     };
 

@@ -20,7 +20,7 @@ export async function createCampaignAction(data: CampaignFormValues) {
     return { error: 'Dados inválidos' };
   }
 
-  const { name, description, pixKey, imageUrl, items } = parsed.data;
+  const { name, description, pixKey, imageUrl, requiresDonationApproval, items } = parsed.data;
 
   try {
     const campaignId = crypto.randomUUID();
@@ -42,6 +42,7 @@ export async function createCampaignAction(data: CampaignFormValues) {
           description,
           pixKey,
           imageUrl: imageUrl || null,
+          requiresApproval: requiresDonationApproval,
         }),
         db.insert(campaignItems).values(itemsToInsert),
       ]);
@@ -53,6 +54,7 @@ export async function createCampaignAction(data: CampaignFormValues) {
         description,
         pixKey,
         imageUrl: imageUrl || null,
+        requiresApproval: requiresDonationApproval,
       });
     }
   } catch (error) {
@@ -94,7 +96,7 @@ export async function updateCampaignAction(campaignId: string, data: CampaignFor
     return { error: 'Dados inválidos' };
   }
 
-  const { name, description, pixKey, imageUrl, items } = parsed.data;
+  const { name, description, pixKey, imageUrl, requiresDonationApproval, items } = parsed.data;
 
   try {
     const currentItems = await db
@@ -119,6 +121,7 @@ export async function updateCampaignAction(campaignId: string, data: CampaignFor
           description,
           pixKey,
           imageUrl: imageUrl || null,
+          requiresApproval: requiresDonationApproval,
           updatedAt: new Date(),
         })
         .where(eq(campaigns.id, campaignId)),

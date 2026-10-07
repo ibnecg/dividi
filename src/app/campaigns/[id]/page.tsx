@@ -8,6 +8,7 @@ import { PledgeDialog } from "@/components/pledge-dialog"
 import { auth } from "@/lib/auth/server"
 import { AlertCircle } from "lucide-react"
 import { PublicHeader } from "@/components/public-header"
+import { expireOverdueDonations } from "@/lib/donations/service"
 
 interface PageProps {
   params: Promise<{ id: string }>
@@ -30,6 +31,9 @@ export default async function CampaignDetailsPage({ params }: PageProps) {
   // Fetch session to check ownership
   const { data: session } = await auth.getSession();
   const isOwner = Boolean(session?.user?.id && session.user.id === campaign.userId);
+
+  // Expire overdue donations
+  await expireOverdueDonations({ campaignId: id });
 
   // Fetch associated items
   const items = await db
@@ -118,6 +122,7 @@ export default async function CampaignDetailsPage({ params }: PageProps) {
                     campaignId={campaign.id}
                     campaignName={campaign.name}
                     campaignPixKey={campaign.pixKey}
+                    requiresApproval={campaign.requiresApproval}
                   />
                 ) : (
                   <div className="w-full text-center py-2 mt-4 bg-muted text-muted-foreground rounded-md font-medium text-sm">
