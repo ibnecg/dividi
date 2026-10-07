@@ -55,6 +55,8 @@ describe('Campaign Actions', () => {
         name: 'Test',
         description: 'Valid description with more than 10 chars',
         pixKey: 'key',
+        allowPix: true,
+        allowInPerson: false,
         requiresDonationApproval: false,
         items: [],
       });
@@ -71,6 +73,8 @@ describe('Campaign Actions', () => {
         name: 'Te', // Too short
         description: 'Valid description',
         pixKey: 'key',
+        allowPix: true,
+        allowInPerson: false,
         requiresDonationApproval: false,
         items: [],
       });
@@ -90,6 +94,8 @@ describe('Campaign Actions', () => {
           name: 'Valid Name',
           description: 'Valid description with enough characters',
           pixKey: 'valid-pix',
+          allowPix: true,
+          allowInPerson: false,
           requiresDonationApproval: false,
           items: [{ description: 'Item 1', amount: 10, quantity: 1 }],
         });
@@ -114,6 +120,8 @@ describe('Campaign Actions', () => {
         name: 'Updated Name',
         description: 'Valid description with more than 10 chars',
         pixKey: 'pix-key-123',
+        allowPix: true,
+        allowInPerson: false,
         requiresDonationApproval: false,
         items: [],
       });
@@ -135,6 +143,8 @@ describe('Campaign Actions', () => {
         name: 'Updated Name',
         description: 'Valid description with more than 10 chars',
         pixKey: 'pix-key-123',
+        allowPix: true,
+        allowInPerson: false,
         requiresDonationApproval: false,
         items: [],
       });
@@ -156,6 +166,8 @@ describe('Campaign Actions', () => {
         name: 'Updated Name',
         description: 'Valid description with more than 10 chars',
         pixKey: 'pix-key-123',
+        allowPix: true,
+        allowInPerson: false,
         requiresDonationApproval: false,
         items: [],
       });
@@ -177,6 +189,8 @@ describe('Campaign Actions', () => {
         name: 'ab', // Invalid: min 3 chars
         description: 'short',
         pixKey: 'key',
+        allowPix: true,
+        allowInPerson: false,
         requiresDonationApproval: false,
         items: [],
       });
@@ -211,6 +225,8 @@ describe('Campaign Actions', () => {
           name: 'Updated Name',
           description: 'Updated description with plenty of characters',
           pixKey: 'pix-12345',
+          allowPix: true,
+          allowInPerson: false,
           requiresDonationApproval: false,
           items: [
             { id: 'item-1', description: 'Item 1 Updated', amount: 15, quantity: 2 },
@@ -253,6 +269,8 @@ describe('Campaign Actions', () => {
         name: 'Updated Name',
         description: 'Updated description with plenty of characters',
         pixKey: 'pix-12345',
+        allowPix: true,
+        allowInPerson: false,
         requiresDonationApproval: false,
         items: [],
       });

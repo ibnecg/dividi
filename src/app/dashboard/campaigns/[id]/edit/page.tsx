@@ -39,7 +39,13 @@ export default async function EditCampaignPage({ params }: EditCampaignPageProps
   const initialData = {
     name: campaign.name,
     description: campaign.description,
-    pixKey: campaign.pixKey,
+    pixKey: campaign.pixKey || '',
+    allowPix: campaign.allowPix,
+    allowInPerson: campaign.allowInPerson,
+    inPersonAddress: campaign.inPersonAddress || '',
+    inPersonDays: campaign.inPersonDays || '',
+    inPersonHours: campaign.inPersonHours || '',
+    inPersonInstructions: campaign.inPersonInstructions || '',
     imageUrl: campaign.imageUrl || '',
     requiresDonationApproval: campaign.requiresApproval,
     items: items.map((item) => ({

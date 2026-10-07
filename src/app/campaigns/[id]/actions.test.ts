@@ -21,6 +21,7 @@ describe('pledgeDonationAction', () => {
   it('should return error if validation fails', async () => {
     const result = await pledgeDonationAction('camp-1', {
       campaignItemId: '',
+      donationType: 'pix',
       quantity: 0,
     });
 
@@ -34,6 +35,7 @@ describe('pledgeDonationAction', () => {
 
     const result = await pledgeDonationAction('camp-1', {
       campaignItemId: 'item-1',
+      donationType: 'pix',
       quantity: 2,
     });
 
@@ -47,6 +49,7 @@ describe('pledgeDonationAction', () => {
 
     const result = await pledgeDonationAction('camp-1', {
       campaignItemId: 'item-1',
+      donationType: 'pix',
       quantity: 2,
       donorName: 'Maria',
       donorPhone: '11999999999',
@@ -66,6 +69,7 @@ describe('pledgeDonationAction', () => {
 
     const result = await pledgeDonationAction('camp-1', {
       campaignItemId: 'item-1',
+      donationType: 'pix',
       quantity: 2,
     });
 
