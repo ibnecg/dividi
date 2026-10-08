@@ -1,9 +1,19 @@
 import LoginForm from './login-form';
 import { ThemeToggle } from '@/components/theme-toggle';
+import Link from 'next/link';
+import { ArrowLeft } from 'lucide-react';
+import { buttonVariants } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 export default function LoginPage() {
   return (
     <div className="flex min-h-screen items-center justify-center p-4 bg-background relative">
+      <div className="absolute top-4 left-4 md:top-8 md:left-8">
+        <Link href="/" className={cn(buttonVariants({ variant: 'ghost' }), "text-muted-foreground")}>
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Voltar
+        </Link>
+      </div>
       <div className="absolute top-4 right-4 md:top-8 md:right-8">
         <ThemeToggle variant="dropdown" />
       </div>
