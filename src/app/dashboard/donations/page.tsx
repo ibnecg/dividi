@@ -6,7 +6,7 @@ import { redirect } from 'next/navigation';
 import { Card, CardContent } from '@/components/ui/card';
 import { DonationReviewActions } from '@/components/dashboard/donation-review-actions';
 import { Badge } from '@/components/ui/badge';
-import { formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNow, format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { expireOverdueDonations } from '@/lib/donations/service';
 import Link from 'next/link';
@@ -155,7 +155,12 @@ export default async function DonationsPage() {
                         )}
                       </td>
                       <td className="px-4 py-4 text-muted-foreground">
-                        {new Date((donation.donatedAt ?? donation.createdAt)!).toLocaleDateString('pt-BR')}
+                        <div className="font-medium text-foreground">
+                          {format(new Date((donation.donatedAt ?? donation.createdAt)!), 'dd/MM/yyyy')}
+                        </div>
+                        <div className="text-xs">
+                          {format(new Date((donation.donatedAt ?? donation.createdAt)!), 'HH:mm')}
+                        </div>
                       </td>
                       <td className="px-4 py-4">
                         {donation.status === 'approved' ? (
