@@ -33,7 +33,7 @@ export async function pledgeDonation(params: {
            CASE WHEN d.needs_approval THEN now() + make_interval(hours => 72) END,
            ${params.donorName ?? null}, ${params.donorPhone ?? null}, ${params.message ?? null},
            ${params.donationType ?? 'pix'}
-    FROM decremented
+    FROM decremented d
     RETURNING id, status, expires_at;
   `);
 
