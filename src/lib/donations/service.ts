@@ -26,13 +26,14 @@ export async function pledgeDonation(params: {
         AND (target.unit_price IS NOT NULL OR ${params.customAmount ?? null}::numeric IS NOT NULL)
       RETURNING ci.id, target.unit_price, target.needs_approval
     )
-    INSERT INTO donations (id, campaign_item_id, quantity, amount, status, expires_at, donor_name, donor_phone, message, donation_type)
+    INSERT INTO donations (id, campaign_item_id, quantity, amount, status, expires_at, donor_name, donor_phone, message, donation_type, donated_at)
     SELECT gen_random_uuid(), d.id, ${params.quantity},
            COALESCE(d.unit_price * ${params.quantity}, ${params.customAmount ?? null}::numeric),
            CASE WHEN d.needs_approval THEN 'pending'::varchar ELSE 'approved'::varchar END,
            CASE WHEN d.needs_approval THEN now() + make_interval(hours => 72) END,
            ${params.donorName ?? null}, ${params.donorPhone ?? null}, ${params.message ?? null},
-           ${params.donationType ?? 'pix'}
+           ${params.donationType ?? 'pix'},
+           now()
     FROM decremented d
     RETURNING id, status, expires_at;
   `);

@@ -29,6 +29,7 @@ export default async function DonationsPage() {
       donorPhone: donations.donorPhone,
       status: donations.status,
       donatedAt: donations.donatedAt,
+      createdAt: donations.createdAt,
       expiresAt: donations.expiresAt,
       amount: donations.amount,
       reversalReason: donations.reversalReason,
@@ -41,7 +42,7 @@ export default async function DonationsPage() {
     .innerJoin(campaignItems, eq(donations.campaignItemId, campaignItems.id))
     .innerJoin(campaigns, eq(campaignItems.campaignId, campaigns.id))
     .where(eq(campaigns.userId, session.user.id))
-    .orderBy(desc(donations.donatedAt));
+    .orderBy(desc(donations.createdAt));
 
   const pendingDonations = userDonations.filter(d => d.status === 'pending');
   const pastDonations = userDonations.filter(d => d.status !== 'pending');
@@ -102,7 +103,7 @@ export default async function DonationsPage() {
                     
                     <div className="flex flex-col items-start md:items-end justify-between gap-4">
                       <div className="text-sm text-muted-foreground">
-                        Registrado há {formatDistanceToNow(new Date(donation.donatedAt!), { locale: ptBR })}
+                        Registrado há {formatDistanceToNow(new Date((donation.donatedAt ?? donation.createdAt)!), { locale: ptBR })}
                       </div>
                       <DonationReviewActions donationId={donation.id} />
                     </div>
@@ -154,7 +155,7 @@ export default async function DonationsPage() {
                         )}
                       </td>
                       <td className="px-4 py-4 text-muted-foreground">
-                        {new Date(donation.donatedAt!).toLocaleDateString('pt-BR')}
+                        {new Date((donation.donatedAt ?? donation.createdAt)!).toLocaleDateString('pt-BR')}
                       </td>
                       <td className="px-4 py-4">
                         {donation.status === 'approved' ? (
