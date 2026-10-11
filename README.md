@@ -66,3 +66,7 @@ Abra [http://localhost:3000](http://localhost:3000) no seu navegador.
 - `pnpm test:e2e`: Roda os testes ponta-a-ponta com Playwright.
 
 access: https://dividi-two.vercel.app
+
+## Licença
+
+Este projeto está licenciado sob os termos da licença MIT. Consulte o arquivo [LICENSE](./LICENSE) para obter mais detalhes.
