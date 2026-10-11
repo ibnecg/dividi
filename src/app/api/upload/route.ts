@@ -6,12 +6,23 @@ export async function POST(request: Request): Promise<NextResponse> {
   const body = (await request.json()) as HandleUploadBody;
   
   // Verify user is authenticated before allowing upload
-  const session = await auth.getSession();
+  const { data: session } = await auth.getSession();
   if (!session?.user?.id) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   try {
+    if (process.env.NODE_ENV !== 'production' && !process.env.BLOB_READ_WRITE_TOKEN) {
+      // Mock upload for local development/testing without token
+      return NextResponse.json({
+        type: 'blob',
+        url: 'https://placehold.co/600x400/png?text=Mock+Image',
+        clientPayload: (body as HandleUploadBody & { clientPayload?: string }).clientPayload,
+        token: 'mock-token',
+        pathname: 'mock-image.png',
+      });
+    }
+
     const jsonResponse = await handleUpload({
       body,
       request,

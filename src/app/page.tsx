@@ -16,26 +16,12 @@ import {
 } from "lucide-react"
 
 import Link from "next/link"
+import { PublicHeader } from "@/components/public-header"
 
 export default function Home() {
   return (
     <div className="flex flex-col min-h-screen bg-background">
-      {/* Header */}
-      <header className="flex h-16 items-center px-4 md:px-6 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
-        <div className="mr-4 hidden md:flex">
-          <span className="font-bold text-xl tracking-tight">Dividi</span>
-        </div>
-        <div className="flex flex-1 items-center justify-end space-x-2">
-          <nav className="flex items-center space-x-4">
-            <Link href="/login" className="text-sm font-medium hover:underline underline-offset-4">
-              Entrar
-            </Link>
-            <Link href="/signup">
-              <Button>Criar Conta</Button>
-            </Link>
-          </nav>
-        </div>
-      </header>
+      <PublicHeader />
 
       {/* Hero Section */}
       <section className="flex flex-col items-center justify-center pt-24 pb-16 px-4 text-center sm:pt-32 sm:pb-24">
@@ -46,12 +32,16 @@ export default function Home() {
           Conectamos quem precisa de ajuda com quem quer ajudar. Um sistema de doações focado em necessidades reais e impacto social transparente.
         </p>
         <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center items-center">
-          <Button size="lg" className="w-full sm:w-auto font-medium text-base">
-            Criar Campanha
-          </Button>
-          <Button size="lg" variant="outline" className="w-full sm:w-auto font-medium text-base">
-            Quero Doar
-          </Button>
+          <Link href="/dashboard/campaigns/new" className="w-full sm:w-auto">
+            <Button size="lg" className="w-full font-medium text-base">
+              Criar Campanha
+            </Button>
+          </Link>
+          <Link href="/campaigns" className="w-full sm:w-auto">
+            <Button size="lg" variant="outline" className="w-full font-medium text-base">
+              Quero Doar
+            </Button>
+          </Link>
         </div>
       </section>
 

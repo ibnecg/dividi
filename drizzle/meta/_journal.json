@@ -15,6 +15,41 @@
       "when": 1789262632763,
       "tag": "0001_chunky_silk_fever",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1789827782910,
+      "tag": "0002_lazy_monster_badoon",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1789843101396,
+      "tag": "0003_freezing_thing",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1791335448004,
+      "tag": "0004_flaky_joshua_kane",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1791335537524,
+      "tag": "0005_needy_mantis",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1791339227686,
+      "tag": "0006_calm_firestar",
+      "breakpoints": true
     }
   ]
 }

@@ -1,38 +1,60 @@
 'use client';
 
 import * as React from 'react';
-import { useForm, useFieldArray } from 'react-hook-form';
+import { useForm, useFieldArray, type Resolver } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { campaignSchema, type CampaignFormValues } from '@/lib/validations/campaign';
-import { createCampaignAction } from '@/app/dashboard/campaigns/actions';
+import { createCampaignAction, updateCampaignAction } from '@/app/dashboard/campaigns/actions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardHeader, CardContent, CardTitle } from '@/components/ui/card';
 import { upload } from '@vercel/blob/client';
-import { Plus, Trash2, Loader2 } from 'lucide-react';
+import { Plus, Trash2, Loader2, Download, Upload, Check } from 'lucide-react';
+import Papa from 'papaparse';
 
-export function CampaignForm() {
+interface CampaignFormProps {
+  campaignId?: string;
+  initialData?: CampaignFormValues;
+}
+
+export function CampaignForm({ campaignId, initialData }: CampaignFormProps = {}) {
   const [isUploading, setIsUploading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const [success, setSuccess] = React.useState<string | null>(null);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const {
     register,
     control,
     handleSubmit,
     setValue,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<CampaignFormValues>({
-    resolver: zodResolver(campaignSchema),
-    defaultValues: {
+    resolver: zodResolver(campaignSchema) as unknown as Resolver<CampaignFormValues>,
+    defaultValues: initialData || {
       name: '',
       description: '',
+      allowPix: true,
+      allowInPerson: false,
       pixKey: '',
+      inPersonAddress: '',
+      inPersonDays: '',
+      inPersonHours: '',
+      inPersonInstructions: '',
       imageUrl: '',
+      requiresDonationApproval: false,
       items: [],
     },
   });
+
+  const campaignImageUrl = watch('imageUrl');
+  const watchedItems = watch('items');
+  const requiresApproval = watch('requiresDonationApproval');
+  const allowPix = watch('allowPix');
+  const allowInPerson = watch('allowInPerson');
 
   const { fields, append, remove } = useFieldArray({
     control,
@@ -47,7 +69,7 @@ export function CampaignForm() {
       setIsUploading(true);
       setError(null);
       const newBlob = await upload(file.name, file, {
-        access: 'public',
+        access: 'private',
         handleUploadUrl: '/api/upload',
       });
 
@@ -63,25 +85,106 @@ export function CampaignForm() {
     }
   };
 
+  const downloadCsvTemplate = () => {
+    const csvContent = 'Descrição,Valor,Quantidade\nExemplo de Item,50.00,2\n';
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', 'template_itens_campanha.csv');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleCsvUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.name.endsWith('.csv')) {
+      setError('Por favor, selecione um arquivo .csv válido.');
+      setSuccess(null);
+      return;
+    }
+
+    Papa.parse(file, {
+      header: true,
+      skipEmptyLines: true,
+      complete: (results) => {
+        const parsedItems = results.data as Array<Record<string, string>>;
+        let importedCount = 0;
+
+        if (results.meta.fields && !results.meta.fields.includes('Descrição')) {
+          setError('O CSV deve conter pelo menos a coluna "Descrição".');
+          setSuccess(null);
+          return;
+        }
+
+        parsedItems.forEach((row) => {
+          const description = row['Descrição']?.trim();
+          if (!description) return;
+
+          const amountStr = row['Valor']?.trim();
+          const amount = amountStr ? parseFloat(amountStr.replace(',', '.')) : undefined;
+          
+          const qtyStr = row['Quantidade']?.trim();
+          const quantity = qtyStr ? parseInt(qtyStr, 10) : 1;
+
+          append({
+            description,
+            amount: isNaN(amount as number) ? undefined : amount,
+            quantity: isNaN(quantity) ? 1 : quantity,
+            imageUrl: ''
+          });
+          importedCount++;
+        });
+
+        if (importedCount > 0) {
+          setSuccess(`${importedCount} itens importados com sucesso!`);
+          setError(null);
+        } else {
+          setError('Nenhum item válido encontrado no CSV.');
+          setSuccess(null);
+        }
+        
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
+      },
+      error: (err) => {
+        setError(`Erro ao ler o arquivo CSV: ${err.message}`);
+        setSuccess(null);
+      }
+    });
+  };
+
   const onSubmit = async (data: CampaignFormValues) => {
     setError(null);
-    const result = await createCampaignAction(data);
+    const result = campaignId
+      ? await updateCampaignAction(campaignId, data)
+      : await createCampaignAction(data);
     if (result?.error) {
       setError(result.error);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-8 max-w-3xl mx-auto">
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    <form onSubmit={handleSubmit(onSubmit as any)} className="space-y-8 max-w-3xl mx-auto">
       {error && (
         <div className="p-4 bg-destructive/10 text-destructive border border-destructive rounded-md">
           {error}
         </div>
       )}
+      {success && (
+        <div className="p-4 bg-green-100 text-green-800 border border-green-300 rounded-md">
+          {success}
+        </div>
+      )}
 
       <Card>
         <CardHeader>
-          <CardTitle>Detalhes da Campanha</CardTitle>
+          <CardTitle>{campaignId ? 'Editar Detalhes da Campanha' : 'Detalhes da Campanha'}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
@@ -100,14 +203,105 @@ export function CampaignForm() {
             {errors.description && <p className="text-sm text-destructive">{errors.description.message}</p>}
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="pixKey">Chave PIX *</Label>
-            <Input id="pixKey" {...register('pixKey')} placeholder="CPF, E-mail, Celular ou Chave Aleatória" />
-            {errors.pixKey && <p className="text-sm text-destructive">{errors.pixKey.message}</p>}
+          <div className="space-y-4 pt-4 border-t border-border">
+            <h3 className="text-lg font-medium">Formas de Doação Aceitas</h3>
+            
+            <div className="grid gap-4 md:grid-cols-2">
+              <label
+                className={`flex items-start gap-3 p-4 rounded-lg border cursor-pointer hover:bg-muted/50 transition-colors focus-within:ring-2 focus-within:ring-ring ${allowPix ? 'border-primary' : 'border-border'}`}
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    setValue('allowPix', !allowPix, { shouldValidate: true });
+                  }
+                }}
+              >
+                <input
+                  type="checkbox"
+                  className="sr-only"
+                  {...register('allowPix')}
+                />
+                <div className={`w-5 h-5 rounded border mt-0.5 flex items-center justify-center shrink-0 ${allowPix ? 'bg-primary border-primary text-primary-foreground' : 'border-input'}`}>
+                  {allowPix && <Check className="w-3.5 h-3.5" />}
+                </div>
+                <div>
+                  <p className="font-medium text-foreground">Doação via Pix</p>
+                  <p className="text-sm text-muted-foreground mt-1">Receber contribuições financeiras diretamente na sua conta.</p>
+                </div>
+              </label>
+
+              <label
+                className={`flex items-start gap-3 p-4 rounded-lg border cursor-pointer hover:bg-muted/50 transition-colors focus-within:ring-2 focus-within:ring-ring ${allowInPerson ? 'border-primary' : 'border-border'}`}
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    setValue('allowInPerson', !allowInPerson, { shouldValidate: true });
+                  }
+                }}
+              >
+                <input
+                  type="checkbox"
+                  className="sr-only"
+                  {...register('allowInPerson')}
+                />
+                <div className={`w-5 h-5 rounded border mt-0.5 flex items-center justify-center shrink-0 ${allowInPerson ? 'bg-primary border-primary text-primary-foreground' : 'border-input'}`}>
+                  {allowInPerson && <Check className="w-3.5 h-3.5" />}
+                </div>
+                <div>
+                  <p className="font-medium text-foreground">Entrega presencial</p>
+                  <p className="text-sm text-muted-foreground mt-1">Receber doações físicas de produtos diretamente no local.</p>
+                </div>
+              </label>
+            </div>
+            {errors.allowPix && <p className="text-sm text-destructive">{errors.allowPix.message}</p>}
           </div>
+
+          {allowPix && (
+            <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
+              <Label htmlFor="pixKey">Chave PIX *</Label>
+              <Input id="pixKey" {...register('pixKey')} placeholder="CPF, E-mail, Celular ou Chave Aleatória" />
+              {errors.pixKey && <p className="text-sm text-destructive">{errors.pixKey.message}</p>}
+            </div>
+          )}
+
+          {allowInPerson && (
+            <div className="space-y-4 animate-in fade-in slide-in-from-top-2 p-4 bg-muted/30 rounded-lg border border-border">
+              <h4 className="font-medium">Dados para Entrega</h4>
+              <div className="space-y-2">
+                <Label htmlFor="inPersonAddress">Endereço para entrega *</Label>
+                <Input id="inPersonAddress" {...register('inPersonAddress')} placeholder="Ex: Rua das Flores, 123 - Centro, São Paulo - SP" />
+                {errors.inPersonAddress && <p className="text-sm text-destructive">{errors.inPersonAddress.message}</p>}
+              </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="inPersonDays">Dias da semana disponíveis *</Label>
+                  <Input id="inPersonDays" {...register('inPersonDays')} placeholder="Ex: Segunda a Sexta-feira" />
+                  {errors.inPersonDays && <p className="text-sm text-destructive">{errors.inPersonDays.message}</p>}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="inPersonHours">Horários disponíveis *</Label>
+                  <Input id="inPersonHours" {...register('inPersonHours')} placeholder="Ex: 08:00 às 17:00" />
+                  {errors.inPersonHours && <p className="text-sm text-destructive">{errors.inPersonHours.message}</p>}
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="inPersonInstructions">Instruções adicionais de entrega (Opcional)</Label>
+                <Textarea id="inPersonInstructions" {...register('inPersonInstructions')} placeholder="Ex: Procurar por Mariana na portaria lateral" />
+                {errors.inPersonInstructions && <p className="text-sm text-destructive">{errors.inPersonInstructions.message}</p>}
+              </div>
+            </div>
+          )}
 
           <div className="space-y-2">
             <Label htmlFor="campaignImage">Imagem da Campanha (Opcional, máx 50kb)</Label>
+            {campaignImageUrl && (
+              <div className="mb-2 relative w-36 h-24 rounded-md overflow-hidden border border-border">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={campaignImageUrl} alt="Capa da campanha" className="w-full h-full object-cover" />
+              </div>
+            )}
             <Input
               id="campaignImage"
               type="file"
@@ -119,73 +313,185 @@ export function CampaignForm() {
         </CardContent>
       </Card>
 
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h3 className="text-lg font-medium">Itens da Campanha (Opcional)</h3>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => append({ description: '', amount: undefined, imageUrl: '' })}
+      <Card>
+        <CardHeader>
+          <CardTitle>Confirmação de Doações</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <label
+            className="flex items-start gap-3 p-4 rounded-lg border border-border cursor-pointer hover:bg-muted/50 transition-colors focus-within:ring-2 focus-within:ring-ring"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                setValue('requiresDonationApproval', false);
+              }
+            }}
           >
-            <Plus className="w-4 h-4 mr-2" />
-            Adicionar Item
-          </Button>
+            <input
+              type="radio"
+              name="requiresDonationApproval"
+              className="sr-only"
+              checked={!requiresApproval}
+              onChange={() => setValue('requiresDonationApproval', false, { shouldValidate: true })}
+            />
+            <div className={`w-4 h-4 rounded-full border border-primary mt-1 flex items-center justify-center shrink-0 ${!requiresApproval ? 'bg-primary' : ''}`}>
+              {!requiresApproval && <div className="w-2 h-2 rounded-full bg-background" />}
+            </div>
+            <div>
+              <p className="font-medium text-foreground">Aprovação automática</p>
+              <p className="text-sm text-muted-foreground mt-1">A doação é registrada e o item baixado imediatamente.</p>
+            </div>
+          </label>
+
+          <label
+            className="flex items-start gap-3 p-4 rounded-lg border border-border cursor-pointer hover:bg-muted/50 transition-colors focus-within:ring-2 focus-within:ring-ring"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                setValue('requiresDonationApproval', true);
+              }
+            }}
+          >
+            <input
+              type="radio"
+              name="requiresDonationApproval"
+              className="sr-only"
+              checked={requiresApproval}
+              onChange={() => setValue('requiresDonationApproval', true, { shouldValidate: true })}
+            />
+            <div className={`w-4 h-4 rounded-full border border-primary mt-1 flex items-center justify-center shrink-0 ${requiresApproval ? 'bg-primary' : ''}`}>
+              {requiresApproval && <div className="w-2 h-2 rounded-full bg-background" />}
+            </div>
+            <div>
+              <p className="font-medium text-foreground">Requer minha aprovação</p>
+              <p className="text-sm text-muted-foreground mt-1">O item é reservado e você tem 72h para aprovar ou reprovar. Sem resposta, a doação é estornada automaticamente.</p>
+            </div>
+          </label>
+        </CardContent>
+      </Card>
+
+      <div className="space-y-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <h3 className="text-lg font-medium">Itens da Campanha (Opcional)</h3>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={downloadCsvTemplate}
+            >
+              <Download className="w-4 h-4 mr-2" />
+              Template CSV
+            </Button>
+            <input
+              type="file"
+              accept=".csv"
+              className="hidden"
+              ref={fileInputRef}
+              onChange={handleCsvUpload}
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <Upload className="w-4 h-4 mr-2" />
+              Importar CSV
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => append({ description: '', amount: undefined, quantity: 1, imageUrl: '' })}
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Adicionar Item
+            </Button>
+          </div>
         </div>
         
-        {fields.map((field, index) => (
-          <Card key={field.id}>
-            <CardContent className="pt-6 relative">
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="absolute right-2 top-2 text-muted-foreground hover:text-destructive"
-                onClick={() => remove(index)}
-              >
-                <Trash2 className="w-4 h-4" />
-              </Button>
+        {fields.map((field, index) => {
+          const itemImageUrl = watchedItems?.[index]?.imageUrl;
 
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-2">
-                  <Label>Descrição do Item *</Label>
-                  <Input
-                    {...register(`items.${index}.description`)}
-                    placeholder="Ex: Saco de Ração 15kg, ou Doação Livre"
-                  />
-                  {errors.items?.[index]?.description && (
-                    <p className="text-sm text-destructive">{errors.items[index]?.description?.message}</p>
-                  )}
-                </div>
+          return (
+            <Card key={field.id}>
+              <CardContent className="pt-6 relative">
+                {/* Keep existing item ID */}
+                <input type="hidden" {...register(`items.${index}.id`)} />
 
-                <div className="space-y-2">
-                  <Label>Valor (Opcional - R$)</Label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    {...register(`items.${index}.amount`)}
-                    placeholder="Deixe em branco para valor livre"
-                  />
-                </div>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-2 top-2 text-muted-foreground hover:text-destructive"
+                  onClick={() => remove(index)}
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
 
-                <div className="space-y-2 md:col-span-2">
-                  <Label>Imagem do Item (Opcional)</Label>
-                  <Input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => handleImageUpload(e, index)}
-                    disabled={isUploading}
-                  />
+                <div className="grid gap-4 md:grid-cols-3">
+                  <div className="space-y-2">
+                    <Label>Descrição do Item *</Label>
+                    <Input
+                      {...register(`items.${index}.description`)}
+                      placeholder="Ex: Saco de Ração 15kg, ou Doação Livre"
+                    />
+                    {errors.items?.[index]?.description && (
+                      <p className="text-sm text-destructive">{errors.items[index]?.description?.message}</p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Valor (Opcional - R$)</Label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      {...register(`items.${index}.amount`)}
+                      placeholder="Livre se branco"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Quantidade *</Label>
+                    <Input
+                      type="number"
+                      min="1"
+                      step="1"
+                      {...register(`items.${index}.quantity`)}
+                    />
+                    {errors.items?.[index]?.quantity && (
+                      <p className="text-sm text-destructive">{errors.items[index]?.quantity?.message}</p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2 md:col-span-3">
+                    <Label>Imagem do Item (Opcional)</Label>
+                    {itemImageUrl && (
+                      <div className="mb-2 relative w-20 h-20 rounded-md overflow-hidden border border-border">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={itemImageUrl} alt="Imagem do item" className="w-full h-full object-cover" />
+                      </div>
+                    )}
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleImageUpload(e, index)}
+                      disabled={isUploading}
+                    />
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
 
       <Button type="submit" className="w-full" disabled={isSubmitting || isUploading}>
         {(isSubmitting || isUploading) && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-        Salvar Campanha
+        {campaignId ? 'Salvar Alterações' : 'Salvar Campanha'}
       </Button>
     </form>
   );
