@@ -66,6 +66,7 @@ const runSeed = async () => {
   await db.insert(schema.campaigns).values([
     {
       id: campaign1Id,
+      organizationId: orgId,
       userId,
       name: 'Winter Clothes Drive',
       description: 'Collecting warm clothes for winter.',
@@ -73,6 +74,7 @@ const runSeed = async () => {
     },
     {
       id: campaign2Id,
+      organizationId: orgId,
       userId,
       name: 'Food Bank Collection',
       description: 'Monthly food collection.',

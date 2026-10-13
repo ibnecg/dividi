@@ -4,6 +4,7 @@ import { auth } from '@/lib/auth/server';
 import { db } from '@/db';
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
+import { getUserOrganization, canUserManageCampaign } from '@/lib/organization/campaign-permissions';
 
 vi.mock('next/navigation', () => ({
   redirect: vi.fn().mockImplementation(() => {
@@ -13,6 +14,11 @@ vi.mock('next/navigation', () => ({
 
 vi.mock('next/cache', () => ({
   revalidatePath: vi.fn(),
+}));
+
+vi.mock('@/lib/organization/campaign-permissions', () => ({
+  getUserOrganization: vi.fn(),
+  canUserManageCampaign: vi.fn(),
 }));
 
 vi.mock('@/lib/auth/server', () => ({
@@ -45,6 +51,12 @@ vi.mock('@/db', () => ({
 describe('Campaign Actions', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(getUserOrganization).mockResolvedValue({
+      organizationId: 'org-id',
+      orgName: 'Test Org',
+      role: 'owner',
+    });
+    vi.mocked(canUserManageCampaign).mockResolvedValue(true);
   });
 
   describe('createCampaignAction', () => {
@@ -80,6 +92,25 @@ describe('Campaign Actions', () => {
       });
 
       expect(result).toEqual({ error: 'Dados inválidos' });
+    });
+
+    it('should return error if user has no organization', async () => {
+      vi.mocked(auth.getSession).mockResolvedValueOnce({
+        data: { user: { id: 'user-id' } },
+      } as unknown as Awaited<ReturnType<typeof auth.getSession>>);
+      vi.mocked(getUserOrganization).mockResolvedValueOnce(null);
+
+      const result = await createCampaignAction({
+        name: 'Valid Name',
+        description: 'Valid description with enough characters',
+        pixKey: 'valid-pix',
+        allowPix: true,
+        allowInPerson: false,
+        requiresDonationApproval: false,
+        items: [],
+      });
+
+      expect(result).toEqual({ error: 'Organização não encontrada para este usuário' });
     });
 
     it('should save campaign and redirect on success', async () => {
@@ -152,7 +183,7 @@ describe('Campaign Actions', () => {
       expect(result).toEqual({ error: 'Campanha não encontrada' });
     });
 
-    it('should return error if user is not the owner', async () => {
+    it('should return error if user does not have permission to edit', async () => {
       vi.mocked(auth.getSession).mockResolvedValueOnce({ 
         data: { user: { id: 'user-id' } } 
       } as unknown as Awaited<ReturnType<typeof auth.getSession>>);
@@ -161,6 +192,7 @@ describe('Campaign Actions', () => {
       const mockWhere = vi.fn().mockReturnValue({ limit: mockLimit });
       const mockFrom = vi.fn().mockReturnValue({ where: mockWhere });
       vi.mocked(db.select).mockReturnValue({ from: mockFrom } as unknown as ReturnType<typeof db.select>);
+      vi.mocked(canUserManageCampaign).mockResolvedValueOnce(false);
 
       const result = await updateCampaignAction('camp-1', {
         name: 'Updated Name',
@@ -301,7 +333,7 @@ describe('Campaign Actions', () => {
       expect(result).toEqual({ error: 'Campanha não encontrada' });
     });
 
-    it('should return error if user is not owner', async () => {
+    it('should return error if user does not have permission to toggle status', async () => {
       vi.mocked(auth.getSession).mockResolvedValueOnce({ 
         data: { user: { id: 'user-id' } } 
       } as unknown as Awaited<ReturnType<typeof auth.getSession>>);
@@ -310,6 +342,7 @@ describe('Campaign Actions', () => {
       const mockWhere = vi.fn().mockReturnValue({ limit: mockLimit });
       const mockFrom = vi.fn().mockReturnValue({ where: mockWhere });
       vi.mocked(db.select).mockReturnValue({ from: mockFrom } as unknown as ReturnType<typeof db.select>);
+      vi.mocked(canUserManageCampaign).mockResolvedValueOnce(false);
 
       const result = await toggleCampaignStatusAction('camp-1');
       expect(result).toEqual({ error: 'Você não tem permissão para alterar esta campanha' });

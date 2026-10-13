@@ -9,6 +9,7 @@ import { auth } from "@/lib/auth/server"
 import { AlertCircle } from "lucide-react"
 import { PublicHeader } from "@/components/public-header"
 import { expireOverdueDonations } from "@/lib/donations/service"
+import { canUserManageCampaign } from "@/lib/organization/campaign-permissions"
 
 interface PageProps {
   params: Promise<{ id: string }>
@@ -28,9 +29,11 @@ export default async function CampaignDetailsPage({ params }: PageProps) {
     notFound()
   }
 
-  // Fetch session to check ownership
+  // Fetch session to check ownership / organization membership
   const { data: session } = await auth.getSession();
-  const isOwner = Boolean(session?.user?.id && session.user.id === campaign.userId);
+  const isOrganizer = Boolean(
+    session?.user?.id && (await canUserManageCampaign(session.user.id, campaign.id))
+  );
 
   // Expire overdue donations
   await expireOverdueDonations({ campaignId: id });
@@ -40,6 +43,8 @@ export default async function CampaignDetailsPage({ params }: PageProps) {
     .select()
     .from(campaignItems)
     .where(eq(campaignItems.campaignId, id))
+
+  const itemsList = Array.isArray(items) ? items : [];
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
@@ -52,7 +57,7 @@ export default async function CampaignDetailsPage({ params }: PageProps) {
             <p className="font-medium text-foreground">
               Esta campanha está desativada e não está recebendo novas doações.
             </p>
-            {isOwner && (
+            {isOrganizer && (
               <p className="text-sm text-muted-foreground mt-1">
                 Você é o organizador desta campanha.{' '}
                 <Link
@@ -128,11 +133,11 @@ export default async function CampaignDetailsPage({ params }: PageProps) {
 
       <h2 className="text-2xl font-semibold tracking-tight mb-6">Itens Necessários</h2>
       
-      {items.length === 0 ? (
+      {itemsList.length === 0 ? (
         <p className="text-muted-foreground">Esta campanha não possui itens específicos listados no momento.</p>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {items.map((item) => (
+          {itemsList.map((item) => (
             <Card key={item.id} className="flex flex-col overflow-hidden">
               {item.imageUrl && (
                 <div className="aspect-square w-full overflow-hidden bg-muted">

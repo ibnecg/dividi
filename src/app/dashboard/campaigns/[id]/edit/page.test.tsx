@@ -4,11 +4,16 @@ import { render, screen } from '@testing-library/react';
 import EditCampaignPage from './page';
 import { auth } from '@/lib/auth/server';
 import { db } from '@/db';
+import { canUserManageCampaign } from '@/lib/organization/campaign-permissions';
 
 vi.mock('@/lib/auth/server', () => ({
   auth: {
     getSession: vi.fn(),
   },
+}));
+
+vi.mock('@/lib/organization/campaign-permissions', () => ({
+  canUserManageCampaign: vi.fn(),
 }));
 
 vi.mock('@/db', () => ({
@@ -43,6 +48,7 @@ describe('EditCampaignPage', () => {
     vi.clearAllMocks();
     vi.mocked((db as any).where).mockReset().mockReturnThis();
     vi.mocked((db as any).limit).mockReset().mockReturnThis();
+    vi.mocked(canUserManageCampaign).mockResolvedValue(true);
   });
 
   it('redirects to /login when user is not authenticated', async () => {
@@ -67,7 +73,7 @@ describe('EditCampaignPage', () => {
     ).rejects.toThrow('NEXT_REDIRECT');
   });
 
-  it('redirects to /dashboard/campaigns when user does not own campaign', async () => {
+  it('redirects to /dashboard/campaigns when user does not have permission to manage campaign', async () => {
     vi.mocked(auth.getSession).mockResolvedValueOnce({
       data: { user: { id: 'user-1' } },
     } as any);
@@ -78,9 +84,40 @@ describe('EditCampaignPage', () => {
       ]),
     } as any);
 
+    vi.mocked(canUserManageCampaign).mockResolvedValueOnce(false);
+
     await expect(
       EditCampaignPage({ params: Promise.resolve({ id: 'camp-123' }) })
     ).rejects.toThrow('NEXT_REDIRECT');
+  });
+
+  it('renders edit page when user is another member in the same organization', async () => {
+    vi.mocked(auth.getSession).mockResolvedValueOnce({
+      data: { user: { id: 'member-user-2' } },
+    } as any);
+
+    const mockCampaign = {
+      id: 'camp-123',
+      organizationId: 'org-1',
+      userId: 'creator-user-1',
+      name: 'Campanha Compartilhada',
+      description: 'Arrecadação da organização',
+      pixKey: 'pix@chave.com',
+      imageUrl: '',
+      isActive: true,
+    };
+
+    vi.mocked((db as any).where)
+      .mockReturnValueOnce({ limit: vi.fn().mockResolvedValueOnce([mockCampaign]) } as any)
+      .mockResolvedValueOnce([] as any);
+
+    vi.mocked(canUserManageCampaign).mockResolvedValueOnce(true);
+
+    const jsx = await EditCampaignPage({ params: Promise.resolve({ id: 'camp-123' }) });
+    render(jsx);
+
+    expect(screen.getByRole('heading', { name: 'Editar Campanha' })).toBeDefined();
+    expect(screen.getByText('Name: Campanha Compartilhada')).toBeDefined();
   });
 
   it('renders edit page and form with campaign and items data', async () => {

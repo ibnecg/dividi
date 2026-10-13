@@ -70,7 +70,7 @@ export async function approveDonation(params: { donationId: string; organizerId:
     JOIN campaigns c ON c.id = ci.campaign_id
     WHERE d.id = ${params.donationId}
       AND d.campaign_item_id = ci.id
-      AND c.user_id = ${params.organizerId}
+      AND (c.user_id = ${params.organizerId} OR c.organization_id IN (SELECT organization_id FROM organization_members WHERE user_id = ${params.organizerId}))
       AND d.status = 'pending' 
       AND d.expires_at > now()
     RETURNING d.id, c.id as campaign_id;
@@ -88,7 +88,7 @@ export async function rejectDonation(params: { donationId: string; organizerId: 
       JOIN campaigns c ON c.id = ci.campaign_id
       WHERE d.id = ${params.donationId}
         AND d.campaign_item_id = ci.id
-        AND c.user_id = ${params.organizerId}
+        AND (c.user_id = ${params.organizerId} OR c.organization_id IN (SELECT organization_id FROM organization_members WHERE user_id = ${params.organizerId}))
         AND d.status = 'pending'
       RETURNING d.id, d.campaign_item_id, d.quantity, c.id as campaign_id
     )

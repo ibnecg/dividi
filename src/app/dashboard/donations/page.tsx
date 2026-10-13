@@ -1,7 +1,8 @@
 import { db } from '@/db';
-import { donations, campaignItems, campaigns } from '@/db/schema';
-import { eq, desc } from 'drizzle-orm';
+import { donations, campaignItems, campaigns, organizationMembers } from '@/db/schema';
+import { eq, desc, or, and, isNull, inArray } from 'drizzle-orm';
 import { auth } from '@/lib/auth/server';
+import { getUserOrganization } from '@/lib/organization/campaign-permissions';
 import { redirect } from 'next/navigation';
 import { Card, CardContent } from '@/components/ui/card';
 import { DonationReviewActions } from '@/components/dashboard/donation-review-actions';
@@ -22,6 +23,27 @@ export default async function DonationsPage() {
   // Sweep expired donations first
   await expireOverdueDonations();
 
+  const userOrg = await getUserOrganization(session.user.id);
+
+  let orgMemberIds: string[] = [];
+  if (userOrg) {
+    const members = await db
+      .select({ userId: organizationMembers.userId })
+      .from(organizationMembers)
+      .where(eq(organizationMembers.organizationId, userOrg.organizationId));
+    orgMemberIds = Array.isArray(members) ? members.map((m) => m.userId) : [];
+  }
+
+  const campaignCondition = userOrg
+    ? or(
+        eq(campaigns.organizationId, userOrg.organizationId),
+        and(
+          isNull(campaigns.organizationId),
+          orgMemberIds.length > 0 ? inArray(campaigns.userId, orgMemberIds) : eq(campaigns.userId, session.user.id)
+        )
+      )
+    : eq(campaigns.userId, session.user.id);
+
   const userDonations = await db
     .select({
       id: donations.id,
@@ -41,7 +63,7 @@ export default async function DonationsPage() {
     .from(donations)
     .innerJoin(campaignItems, eq(donations.campaignItemId, campaignItems.id))
     .innerJoin(campaigns, eq(campaignItems.campaignId, campaigns.id))
-    .where(eq(campaigns.userId, session.user.id))
+    .where(campaignCondition)
     .orderBy(desc(donations.createdAt));
 
   const pendingDonations = userDonations.filter(d => d.status === 'pending');

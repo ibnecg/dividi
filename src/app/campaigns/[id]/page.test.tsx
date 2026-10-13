@@ -31,6 +31,11 @@ vi.mock('@/lib/auth/server', () => ({
   },
 }))
 
+// Mock campaign permissions
+vi.mock('@/lib/organization/campaign-permissions', () => ({
+  canUserManageCampaign: vi.fn().mockResolvedValue(false),
+}))
+
 describe('CampaignDetailsPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -154,9 +159,11 @@ describe('CampaignDetailsPage', () => {
 
   it('renders organizer edit notice when logged in user is campaign owner of inactive campaign', async () => {
     const { auth } = await import('@/lib/auth/server')
+    const { canUserManageCampaign } = await import('@/lib/organization/campaign-permissions')
     vi.mocked(auth.getSession).mockResolvedValueOnce({
       data: { user: { id: 'owner-user-id' } }
     } as any)
+    vi.mocked(canUserManageCampaign).mockResolvedValueOnce(true)
 
     const mockCampaign = {
       id: '1',
@@ -168,6 +175,39 @@ describe('CampaignDetailsPage', () => {
       imageUrl: null,
       isActive: false,
       userId: 'owner-user-id',
+      createdAt: new Date(),
+    }
+
+    vi.mocked((db as any).where)
+      .mockReturnValueOnce({ limit: vi.fn().mockResolvedValueOnce([mockCampaign]) } as any)
+      .mockResolvedValueOnce([] as any)
+
+    const jsx = await CampaignDetailsPage({ params: Promise.resolve({ id: '1' }) })
+    render(jsx)
+
+    expect(screen.getByText(/Você é o organizador desta campanha/)).toBeDefined()
+    expect(screen.getByRole('link', { name: /Clique aqui para editá-la ou reativá-la/ })).toBeDefined()
+  })
+
+  it('renders organizer edit notice when logged in user is another member of the same organization', async () => {
+    const { auth } = await import('@/lib/auth/server')
+    const { canUserManageCampaign } = await import('@/lib/organization/campaign-permissions')
+    vi.mocked(auth.getSession).mockResolvedValueOnce({
+      data: { user: { id: 'member-user-id' } }
+    } as any)
+    vi.mocked(canUserManageCampaign).mockResolvedValueOnce(true)
+
+    const mockCampaign = {
+      id: '1',
+      organizationId: 'org-1',
+      name: 'Campanha da Equipe',
+      description: 'Campanha da organização',
+      allowPix: true,
+      allowInPerson: false,
+      pixKey: '123.456.789-00',
+      imageUrl: null,
+      isActive: false,
+      userId: 'creator-user-id',
       createdAt: new Date(),
     }
 
