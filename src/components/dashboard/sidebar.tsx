@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { authClient } from '@/lib/auth/client';
 import { useRouter, usePathname } from 'next/navigation';
-import { LogOut, LayoutDashboard, Megaphone, Menu, X, ChevronLeft, ChevronRight, Inbox } from 'lucide-react';
+import { LogOut, LayoutDashboard, Megaphone, Menu, X, ChevronLeft, ChevronRight, Inbox, Users } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { ThemeToggle } from '@/components/theme-toggle';
@@ -37,6 +37,11 @@ export default function Sidebar({ orgName, pendingDonationsCount = 0 }: { orgNam
       href: '/dashboard/donations', 
       icon: Inbox,
       badge: pendingDonationsCount > 0 ? pendingDonationsCount : undefined 
+    },
+    {
+      name: 'Membros',
+      href: '/dashboard/members',
+      icon: Users,
     },
   ];
 

@@ -69,6 +69,15 @@ describe('Sidebar Component', () => {
     expect(campaignsLinks[0].className).toContain('bg-accent');
   });
 
+  it('renders Membros link and highlights when active', () => {
+    mockPathname = '/dashboard/members';
+    render(<Sidebar orgName="Minha Organização" />);
+
+    const membersLinks = screen.getAllByRole('link', { name: /Membros/i });
+    expect(membersLinks.length).toBeGreaterThan(0);
+    expect(membersLinks[0].className).toContain('bg-accent');
+  });
+
   it('toggles collapsed state on desktop collapse button click', () => {
     render(<Sidebar orgName="Minha Organização" />);
 
