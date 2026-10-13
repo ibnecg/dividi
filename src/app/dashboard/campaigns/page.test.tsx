@@ -4,11 +4,16 @@ import { render, screen } from '@testing-library/react';
 import CampaignsPage from './page';
 import { auth } from '@/lib/auth/server';
 import { db } from '@/db';
+import { getUserOrganization } from '@/lib/organization/campaign-permissions';
 
 vi.mock('@/lib/auth/server', () => ({
   auth: {
     getSession: vi.fn(),
   },
+}));
+
+vi.mock('@/lib/organization/campaign-permissions', () => ({
+  getUserOrganization: vi.fn(),
 }));
 
 vi.mock('@/db', () => ({
@@ -31,6 +36,11 @@ vi.mock('@/components/campaign-status-toggle', () => ({
 describe('Dashboard CampaignsPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(getUserOrganization).mockResolvedValue({
+      organizationId: 'org-1',
+      orgName: 'Minha Organização',
+      role: 'member',
+    });
   });
 
   it('returns null if user session is not found', async () => {
@@ -40,19 +50,20 @@ describe('Dashboard CampaignsPage', () => {
     expect(jsx).toBeNull();
   });
 
-  it('renders empty state when user has no campaigns', async () => {
+  it('renders empty state when user organization has no campaigns', async () => {
     vi.mocked(auth.getSession).mockResolvedValueOnce({
       data: { user: { id: 'user-1' } },
     } as any);
 
-    vi.mocked((db as any).orderBy).mockResolvedValueOnce([] as any);
+    vi.mocked((db as any).where).mockResolvedValueOnce([] as any); // members query
+    vi.mocked((db as any).orderBy).mockResolvedValueOnce([] as any); // campaigns query
 
     const jsx = await CampaignsPage();
     render(jsx!);
 
     expect(screen.getByText('Nenhuma campanha encontrada')).toBeDefined();
     expect(
-      screen.getByText('Você ainda não criou nenhuma campanha de arrecadação.')
+      screen.getByText('Sua organização ainda não criou nenhuma campanha de arrecadação.')
     ).toBeDefined();
     expect(screen.getByRole('link', { name: /Criar a primeira campanha/i })).toBeDefined();
   });
@@ -81,6 +92,7 @@ describe('Dashboard CampaignsPage', () => {
       },
     ];
 
+    vi.mocked((db as any).where).mockResolvedValueOnce([{ userId: 'user-1' }] as any);
     vi.mocked((db as any).orderBy).mockResolvedValueOnce(mockCampaigns as any);
 
     const jsx = await CampaignsPage();

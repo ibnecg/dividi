@@ -3,6 +3,7 @@ import { CampaignStatusToggle } from '@/components/campaign-status-toggle';
 import { db } from '@/db';
 import { campaigns, campaignItems } from '@/db/schema';
 import { auth } from '@/lib/auth/server';
+import { canUserManageCampaign } from '@/lib/organization/campaign-permissions';
 import { eq } from 'drizzle-orm';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
@@ -27,7 +28,9 @@ export default async function EditCampaignPage({ params }: EditCampaignPageProps
     .where(eq(campaigns.id, id))
     .limit(1);
 
-  if (!campaign || campaign.userId !== session.user.id) {
+  const canManage = await canUserManageCampaign(session.user.id, id);
+
+  if (!campaign || !canManage) {
     redirect('/dashboard/campaigns');
   }
 

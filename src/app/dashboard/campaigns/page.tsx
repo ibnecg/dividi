@@ -1,7 +1,8 @@
 import { db } from '@/db';
-import { campaigns } from '@/db/schema';
-import { eq, desc } from 'drizzle-orm';
+import { campaigns, organizationMembers } from '@/db/schema';
+import { eq, desc, or, and, isNull, inArray } from 'drizzle-orm';
 import { auth } from '@/lib/auth/server';
+import { getUserOrganization } from '@/lib/organization/campaign-permissions';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
@@ -15,11 +16,38 @@ export default async function CampaignsPage() {
     return null;
   }
 
-  const userCampaigns = await db
-    .select()
-    .from(campaigns)
-    .where(eq(campaigns.userId, session.user.id))
-    .orderBy(desc(campaigns.createdAt));
+  const userOrg = await getUserOrganization(session.user.id);
+
+  let orgCampaigns = [];
+
+  if (userOrg) {
+    const members = await db
+      .select({ userId: organizationMembers.userId })
+      .from(organizationMembers)
+      .where(eq(organizationMembers.organizationId, userOrg.organizationId));
+
+    const memberIds = Array.isArray(members) ? members.map((m) => m.userId) : [];
+
+    orgCampaigns = await db
+      .select()
+      .from(campaigns)
+      .where(
+        or(
+          eq(campaigns.organizationId, userOrg.organizationId),
+          and(
+            isNull(campaigns.organizationId),
+            memberIds.length > 0 ? inArray(campaigns.userId, memberIds) : eq(campaigns.userId, session.user.id)
+          )
+        )
+      )
+      .orderBy(desc(campaigns.createdAt));
+  } else {
+    orgCampaigns = await db
+      .select()
+      .from(campaigns)
+      .where(eq(campaigns.userId, session.user.id))
+      .orderBy(desc(campaigns.createdAt));
+  }
 
   return (
     <div className="p-6 md:p-8 max-w-5xl mx-auto w-full space-y-6">
@@ -36,17 +64,17 @@ export default async function CampaignsPage() {
         </Link>
       </div>
 
-      {userCampaigns.length === 0 ? (
+      {orgCampaigns.length === 0 ? (
         <div className="text-center p-12 border border-dashed rounded-lg">
           <h2 className="text-xl font-semibold mb-2 text-foreground">Nenhuma campanha encontrada</h2>
-          <p className="text-muted-foreground mb-6">Você ainda não criou nenhuma campanha de arrecadação.</p>
+          <p className="text-muted-foreground mb-6">Sua organização ainda não criou nenhuma campanha de arrecadação.</p>
           <Link href="/dashboard/campaigns/new">
             <Button>Criar a primeira campanha</Button>
           </Link>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {userCampaigns.map((campaign) => (
+          {orgCampaigns.map((campaign) => (
             <Card key={campaign.id} className="flex flex-col h-full overflow-hidden">
               {campaign.imageUrl && (
                 <div className="w-full h-48 overflow-hidden rounded-t-lg shrink-0 bg-muted">

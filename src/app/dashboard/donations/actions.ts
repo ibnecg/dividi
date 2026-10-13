@@ -5,8 +5,9 @@ import { approveDonation, rejectDonation, expireOverdueDonations } from '@/lib/d
 import { donationIdSchema } from '@/lib/validations/campaign';
 import { revalidatePath } from 'next/cache';
 import { db } from '@/db';
-import { sql, eq, and, gt } from 'drizzle-orm';
-import { donations, campaignItems, campaigns } from '@/db/schema';
+import { sql, eq, and, gt, or, isNull, inArray } from 'drizzle-orm';
+import { donations, campaignItems, campaigns, organizationMembers } from '@/db/schema';
+import { getUserOrganization } from '@/lib/organization/campaign-permissions';
 
 export async function approveDonationAction(donationId: string) {
   const { data: session } = await auth.getSession();
@@ -75,6 +76,27 @@ export async function getPendingDonationsCount() {
 
   await expireOverdueDonations();
 
+  const userOrg = await getUserOrganization(session.user.id);
+
+  let orgMemberIds: string[] = [];
+  if (userOrg) {
+    const members = await db
+      .select({ userId: organizationMembers.userId })
+      .from(organizationMembers)
+      .where(eq(organizationMembers.organizationId, userOrg.organizationId));
+    orgMemberIds = Array.isArray(members) ? members.map((m) => m.userId) : [];
+  }
+
+  const campaignCondition = userOrg
+    ? or(
+        eq(campaigns.organizationId, userOrg.organizationId),
+        and(
+          isNull(campaigns.organizationId),
+          orgMemberIds.length > 0 ? inArray(campaigns.userId, orgMemberIds) : eq(campaigns.userId, session.user.id)
+        )
+      )
+    : eq(campaigns.userId, session.user.id);
+
   const [result] = await db
     .select({ count: sql<number>`count(*)` })
     .from(donations)
@@ -82,7 +104,7 @@ export async function getPendingDonationsCount() {
     .innerJoin(campaigns, eq(campaignItems.campaignId, campaigns.id))
     .where(
       and(
-        eq(campaigns.userId, session.user.id),
+        campaignCondition,
         eq(donations.status, 'pending'),
         gt(donations.expiresAt, new Date())
       )

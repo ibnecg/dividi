@@ -8,6 +8,7 @@ import { eq, inArray } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import crypto from 'crypto';
+import { getUserOrganization, canUserManageCampaign } from '@/lib/organization/campaign-permissions';
 
 export async function createCampaignAction(data: CampaignFormValues) {
   const { data: session } = await auth.getSession();
@@ -18,6 +19,11 @@ export async function createCampaignAction(data: CampaignFormValues) {
   const parsed = campaignSchema.safeParse(data);
   if (!parsed.success) {
     return { error: 'Dados inválidos' };
+  }
+
+  const userOrg = await getUserOrganization(session.user.id);
+  if (!userOrg) {
+    return { error: 'Organização não encontrada para este usuário' };
   }
 
   const { name, description, pixKey, imageUrl, requiresDonationApproval, items, allowPix, allowInPerson, inPersonAddress, inPersonDays, inPersonHours, inPersonInstructions } = parsed.data;
@@ -37,6 +43,7 @@ export async function createCampaignAction(data: CampaignFormValues) {
       await db.batch([
         db.insert(campaigns).values({
           id: campaignId,
+          organizationId: userOrg.organizationId,
           userId: session.user.id,
           name,
           description,
@@ -55,6 +62,7 @@ export async function createCampaignAction(data: CampaignFormValues) {
     } else {
       await db.insert(campaigns).values({
         id: campaignId,
+        organizationId: userOrg.organizationId,
         userId: session.user.id,
         name,
         description,
@@ -99,7 +107,8 @@ export async function updateCampaignAction(campaignId: string, data: CampaignFor
     return { error: 'Campanha não encontrada' };
   }
 
-  if (existingCampaign.userId !== session.user.id) {
+  const canManage = await canUserManageCampaign(session.user.id, campaignId);
+  if (!canManage) {
     return { error: 'Você não tem permissão para editar esta campanha' };
   }
 
@@ -217,7 +226,8 @@ export async function toggleCampaignStatusAction(campaignId: string, targetStatu
     return { error: 'Campanha não encontrada' };
   }
 
-  if (existingCampaign.userId !== session.user.id) {
+  const canManage = await canUserManageCampaign(session.user.id, campaignId);
+  if (!canManage) {
     return { error: 'Você não tem permissão para alterar esta campanha' };
   }
 

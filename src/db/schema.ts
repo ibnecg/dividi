@@ -44,6 +44,7 @@ export const organizationInvitations = pgTable('organization_invitations', {
 
 export const campaigns = pgTable('campaigns', {
   id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  organizationId: text('organization_id').references(() => organizations.id, { onDelete: 'cascade' }),
   userId: text('user_id').notNull().references(() => users.id),
   name: text('name').notNull(),
   description: text('description').notNull(),
@@ -59,6 +60,10 @@ export const campaigns = pgTable('campaigns', {
   requiresApproval: boolean('requires_approval').default(false).notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => {
+  return {
+    organizationIdIdx: index('campaigns_organization_id_idx').on(table.organizationId),
+  };
 });
 
 export const campaignItems = pgTable('campaign_items', {
