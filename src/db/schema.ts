@@ -24,6 +24,24 @@ export const organizationMembers = pgTable('organization_members', {
   };
 });
 
+export const organizationInvitations = pgTable('organization_invitations', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  organizationId: text('organization_id').notNull().references(() => organizations.id, { onDelete: 'cascade' }),
+  email: text('email').notNull(),
+  role: text('role').notNull().default('member'),
+  token: text('token').notNull().unique(),
+  invitedByUserId: text('invited_by_user_id').notNull().references(() => users.id),
+  status: varchar('status', { length: 20 }).default('pending').notNull(), // 'pending', 'accepted', 'revoked', 'expired'
+  expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => {
+  return {
+    orgStatusIdx: index('org_invitations_org_status_idx').on(table.organizationId, table.status),
+    tokenIdx: index('org_invitations_token_idx').on(table.token),
+    emailIdx: index('org_invitations_email_idx').on(table.email),
+  };
+});
+
 export const campaigns = pgTable('campaigns', {
   id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
   userId: text('user_id').notNull().references(() => users.id),

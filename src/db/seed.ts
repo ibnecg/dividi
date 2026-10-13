@@ -25,6 +25,7 @@ const runSeed = async () => {
     console.log('🧹 Clearing old data...');
     await db.delete(schema.campaignItems);
     await db.delete(schema.campaigns);
+    await db.delete(schema.organizationInvitations);
     await db.delete(schema.organizationMembers);
     await db.delete(schema.organizations);
     await db.delete(schema.users);
