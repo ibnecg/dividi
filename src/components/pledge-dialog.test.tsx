@@ -57,7 +57,8 @@ describe('PledgeDialog Component', () => {
     // Default quantity 1 * 80 = R$ 80,00
     expect(screen.getByText(/R\$\s*80,00/)).toBeDefined();
 
-    // PIX section exists with copy button and textarea
+    // PIX section exists with QR Code, copy button and textarea
+    expect(screen.getByRole('img', { name: 'QR Code PIX para pagamento' })).toBeDefined();
     expect(screen.getByText('PIX Copia e Cola')).toBeDefined();
     expect(screen.getByRole('button', { name: /copiar código pix/i })).toBeDefined();
 
@@ -189,9 +190,10 @@ describe('PledgeDialog Component', () => {
       );
     });
 
-    // Success screen shown with PIX code still copyable
+    // Success screen shown with QR Code and PIX code still copyable
     await waitFor(() => {
       expect(screen.getByText('Doação registrada com sucesso!')).toBeDefined();
+      expect(screen.getByRole('img', { name: 'QR Code PIX para pagamento' })).toBeDefined();
       expect(screen.getByText('PIX Copia e Cola')).toBeDefined();
       expect(screen.getByRole('button', { name: /concluir/i })).toBeDefined();
     });
