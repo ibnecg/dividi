@@ -12,6 +12,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Loader2, X, Copy, Check, QrCode, CheckCircle2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { generatePixPayload } from '@/lib/pix';
+import { PixQRCode } from '@/components/pix-qr-code';
 
 export interface PledgeDialogProps {
   item: {
@@ -254,39 +255,55 @@ export function PledgeDialog({ item, campaignId, campaignName, campaignPixKey, r
                   )}
 
                   {pixCode && (
-                    <div className="space-y-3 p-4 bg-muted/40 border border-border rounded-lg">
-                      <div className="flex items-center gap-2 text-sm font-medium text-foreground">
-                        <QrCode className="w-4 h-4" />
-                        <span>PIX Copia e Cola</span>
+                    <div className="space-y-4 p-4 bg-muted/40 border border-border rounded-xl">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="flex items-center gap-1.5 font-medium text-foreground">
+                          <QrCode className="w-4 h-4" />
+                          Pague com PIX
+                        </span>
+                        <span className="text-xs text-muted-foreground">Valor embutido</span>
                       </div>
-                      <Textarea
-                        readOnly
-                        value={pixCode}
-                        rows={3}
-                        className="font-mono text-xs break-all bg-background resize-none focus-visible:ring-1 focus-visible:ring-ring"
-                        aria-label="Código PIX Copia e Cola"
-                      />
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={handleCopy}
-                        className="w-full flex items-center justify-center gap-2"
-                      >
-                        {copied ? (
-                          <>
-                            <Check className="w-4 h-4 text-primary" />
-                            <span>Copiado!</span>
-                          </>
-                        ) : (
-                          <>
-                            <Copy className="w-4 h-4" />
-                            <span>Copiar Código PIX</span>
-                          </>
-                        )}
-                      </Button>
-                      <p className="text-xs text-muted-foreground text-center">
-                        Abra o app do seu banco, escolha Pix &gt; Copia e Cola e cole o código.
-                      </p>
+
+                      <div className="flex flex-col items-center justify-center py-1">
+                        <PixQRCode value={pixCode} size={160} />
+                        <p className="text-xs text-muted-foreground text-center mt-2.5">
+                          Aponte a câmera do aplicativo do seu banco para o QR Code acima
+                        </p>
+                      </div>
+
+                      <div className="space-y-2 pt-2 border-t border-border/60">
+                        <div className="flex items-center gap-1.5 text-xs font-medium text-foreground">
+                          <span>PIX Copia e Cola</span>
+                        </div>
+                        <Textarea
+                          readOnly
+                          value={pixCode}
+                          rows={2}
+                          className="font-mono text-xs break-all bg-background resize-none focus-visible:ring-1 focus-visible:ring-ring"
+                          aria-label="Código PIX Copia e Cola"
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={handleCopy}
+                          className="w-full flex items-center justify-center gap-2"
+                        >
+                          {copied ? (
+                            <>
+                              <Check className="w-4 h-4 text-primary" />
+                              <span>Copiado!</span>
+                            </>
+                          ) : (
+                            <>
+                              <Copy className="w-4 h-4" />
+                              <span>Copiar Código PIX</span>
+                            </>
+                          )}
+                        </Button>
+                        <p className="text-xs text-muted-foreground text-center">
+                          Abra o app do seu banco, escolha Pix &gt; Copia e Cola e cole o código.
+                        </p>
+                      </div>
                     </div>
                   )}
 
@@ -366,42 +383,55 @@ export function PledgeDialog({ item, campaignId, campaignName, campaignPixKey, r
                   {/* PIX Code display & copy area */}
                   {watchedDonationType === 'pix' && (
                     pixCode ? (
-                      <div className="space-y-3 p-4 bg-muted/40 border border-border rounded-lg">
+                      <div className="space-y-4 p-4 bg-muted/40 border border-border rounded-xl">
                         <div className="flex items-center justify-between text-sm">
                           <span className="flex items-center gap-1.5 font-medium text-foreground">
                             <QrCode className="w-4 h-4" />
-                            PIX Copia e Cola
+                            Pague com PIX
                           </span>
                           <span className="text-xs text-muted-foreground">Valor embutido</span>
                         </div>
-                        <Textarea
-                          readOnly
-                          value={pixCode}
-                          rows={2}
-                          className="font-mono text-xs break-all bg-background resize-none focus-visible:ring-1 focus-visible:ring-ring"
-                          aria-label="Código PIX Copia e Cola"
-                        />
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={handleCopy}
-                          className="w-full flex items-center justify-center gap-2"
-                        >
-                          {copied ? (
-                            <>
-                              <Check className="w-4 h-4 text-primary" />
-                              <span>Copiado!</span>
-                            </>
-                          ) : (
-                            <>
-                              <Copy className="w-4 h-4" />
-                              <span>Copiar Código PIX</span>
-                            </>
-                          )}
-                        </Button>
-                        <p className="text-xs text-muted-foreground text-center">
-                          Abra o app do seu banco, escolha Pix &gt; Copia e Cola e cole o código.
-                        </p>
+
+                        <div className="flex flex-col items-center justify-center py-1">
+                          <PixQRCode value={pixCode} size={160} />
+                          <p className="text-xs text-muted-foreground text-center mt-2.5">
+                            Aponte a câmera do aplicativo do seu banco para o QR Code acima
+                          </p>
+                        </div>
+
+                        <div className="space-y-2 pt-2 border-t border-border/60">
+                          <div className="flex items-center gap-1.5 text-xs font-medium text-foreground">
+                            <span>PIX Copia e Cola</span>
+                          </div>
+                          <Textarea
+                            readOnly
+                            value={pixCode}
+                            rows={2}
+                            className="font-mono text-xs break-all bg-background resize-none focus-visible:ring-1 focus-visible:ring-ring"
+                            aria-label="Código PIX Copia e Cola"
+                          />
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={handleCopy}
+                            className="w-full flex items-center justify-center gap-2"
+                          >
+                            {copied ? (
+                              <>
+                                <Check className="w-4 h-4 text-primary" />
+                                <span>Copiado!</span>
+                              </>
+                            ) : (
+                              <>
+                                <Copy className="w-4 h-4" />
+                                <span>Copiar Código PIX</span>
+                              </>
+                            )}
+                          </Button>
+                          <p className="text-xs text-muted-foreground text-center">
+                            Abra o app do seu banco, escolha Pix &gt; Copia e Cola e cole o código.
+                          </p>
+                        </div>
                       </div>
                     ) : (
                       !hasFixedPrice && (
