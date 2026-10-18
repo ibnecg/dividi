@@ -82,56 +82,10 @@ export default async function CampaignDetailsPage({ params }: PageProps) {
       <div className="mb-12">
         <h1 className="text-4xl font-bold tracking-tight mb-4">{campaign.name}</h1>
         <p className="text-lg text-muted-foreground whitespace-pre-wrap">{campaign.description}</p>
-        
-        {campaign.isActive && (campaign.allowPix || campaign.allowInPerson) && (
-          <div className="mt-10 space-y-6">
-            <h2 className="text-2xl font-semibold tracking-tight">Como Ajudar</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {campaign.allowPix && campaign.pixKey && (
-                <div className="p-6 bg-muted/30 rounded-xl border border-border">
-                  <h3 className="font-semibold text-lg mb-2">Doação via PIX</h3>
-                  <p className="text-sm text-muted-foreground mb-4">Contribua com qualquer valor para ajudar a campanha.</p>
-                  <div className="p-3 bg-background rounded-lg border border-border">
-                    <p className="text-sm font-medium text-muted-foreground mb-1">Chave PIX:</p>
-                    <p className="font-mono text-foreground break-all">{campaign.pixKey}</p>
-                  </div>
-                </div>
-              )}
-              
-              {campaign.allowInPerson && (
-                <div className="p-6 bg-muted/30 rounded-xl border border-border">
-                  <h3 className="font-semibold text-lg mb-2">Entrega Presencial</h3>
-                  <p className="text-sm text-muted-foreground mb-4">Entregue doações físicas diretamente no local de arrecadação.</p>
-                  <div className="space-y-4 text-sm">
-                    {campaign.inPersonAddress && (
-                      <div>
-                        <span className="font-medium text-foreground block mb-0.5">Endereço:</span>
-                        <p className="text-muted-foreground">{campaign.inPersonAddress}</p>
-                      </div>
-                    )}
-                    {(campaign.inPersonDays || campaign.inPersonHours) && (
-                      <div>
-                        <span className="font-medium text-foreground block mb-0.5">Horários de Recebimento:</span>
-                        <p className="text-muted-foreground">
-                          {[campaign.inPersonDays, campaign.inPersonHours].filter(Boolean).join(' • ')}
-                        </p>
-                      </div>
-                    )}
-                    {campaign.inPersonInstructions && (
-                      <div>
-                        <span className="font-medium text-foreground block mb-0.5">Instruções adicionais:</span>
-                        <p className="text-muted-foreground whitespace-pre-wrap">{campaign.inPersonInstructions}</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
       </div>
 
-      <h2 className="text-2xl font-semibold tracking-tight mb-6">Itens Necessários</h2>
+      <h2 className="text-2xl font-semibold tracking-tight mb-6">Itens para doação:</h2>
+      <p className="text-muted-foreground mb-6">Para saber como ajudar, clique em <strong className="text-foreground">doar</strong> e confira as opções disponíveis.</p>
       
       {itemsList.length === 0 ? (
         <p className="text-muted-foreground">Esta campanha não possui itens específicos listados no momento.</p>
