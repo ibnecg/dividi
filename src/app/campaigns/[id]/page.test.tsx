@@ -22,6 +22,7 @@ vi.mock('@/db', () => {
 // Mock next/navigation
 vi.mock('next/navigation', () => ({
   notFound: vi.fn().mockImplementation(() => { throw new Error('NEXT_NOT_FOUND') }),
+  useRouter: vi.fn().mockReturnValue({ refresh: vi.fn() }),
 }))
 
 // Mock auth
@@ -73,12 +74,14 @@ describe('CampaignDetailsPage', () => {
         id: '101',
         description: 'Cobertor Casal',
         amount: '50.00',
+        quantity: 5,
         imageUrl: null,
       },
       {
         id: '102',
         description: 'Meias',
         amount: null,
+        quantity: 0,
         imageUrl: null,
       }
     ]
@@ -92,11 +95,18 @@ describe('CampaignDetailsPage', () => {
 
     expect(screen.getByText('Campanha de Inverno')).toBeDefined()
     expect(screen.getByText('Doações de cobertores')).toBeDefined()
-    expect(screen.getByText('123.456.789-00')).toBeDefined()
-    expect(screen.getByText('Rua Teste, 123')).toBeDefined()
+    expect(screen.getByText('Itens para doação:')).toBeDefined()
+    expect(screen.getByText(/Para saber como ajudar, clique em/)).toBeDefined()
     expect(screen.getByText('Cobertor Casal')).toBeDefined()
     expect(screen.getByText(/50,00/)).toBeDefined()
     expect(screen.getByText('Meias')).toBeDefined()
+    expect(screen.getByRole('button', { name: /doar/i })).toBeDefined()
+    expect(screen.getByText('Esgotado')).toBeDefined()
+
+    // PIX and in-person details are now accessed via the donation dialog, not statically on the page
+    expect(screen.queryByText('Como Ajudar')).toBeNull()
+    expect(screen.queryByText('123.456.789-00')).toBeNull()
+    expect(screen.queryByText('Rua Teste, 123')).toBeNull()
   })
 
   it('renders empty state for items when none exist', async () => {
