@@ -142,21 +142,7 @@ export function PledgeDialog({ item, campaignId, campaignName, campaignPixKey, r
     }
   };
 
-  // Keyboard accessibility (Esc to close)
-  React.useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && open) {
-        setOpen(false);
-      }
-    };
-
-    if (open) {
-      window.addEventListener('keydown', handleKeyDown);
-    }
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [open]);
-
-  const handleClose = () => {
+  const handleClose = React.useCallback(() => {
     setOpen(false);
     setIsSuccess(false);
     setDonationStatus(null);
@@ -165,7 +151,32 @@ export function PledgeDialog({ item, campaignId, campaignName, campaignPixKey, r
     if (isSuccess) {
       router.refresh();
     }
-  };
+  }, [isSuccess, reset, router]);
+
+  // Keyboard accessibility (Esc to close)
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && open) {
+        handleClose();
+      }
+    };
+
+    if (open) {
+      window.addEventListener('keydown', handleKeyDown);
+    }
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [open, handleClose]);
+
+  // Lock background scroll when open
+  React.useEffect(() => {
+    if (open) {
+      const originalStyle = window.getComputedStyle(document.body).overflow;
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = originalStyle;
+      };
+    }
+  }, [open]);
 
   const onSubmit = async (data: PledgeFormValues) => {
     setError(null);
@@ -199,26 +210,36 @@ export function PledgeDialog({ item, campaignId, campaignName, campaignPixKey, r
           role="dialog"
           aria-modal="true"
           aria-labelledby="dialog-title"
-          className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto"
+          className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm overflow-y-auto p-4 sm:p-6 flex min-h-full items-center justify-center"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              handleClose();
+            }
+          }}
         >
-          <div className="bg-background border border-border shadow-lg rounded-xl w-full max-w-lg my-8 relative animate-in fade-in zoom-in-95 duration-200">
-            <div className="p-6">
-              <button
-                onClick={handleClose}
-                className="absolute right-4 top-4 text-muted-foreground hover:text-foreground transition-colors rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                aria-label="Fechar"
-              >
-                <X className="w-5 h-5" />
-              </button>
-
-              <div className="mb-4 pr-6">
-                <h2 id="dialog-title" className="text-xl font-semibold tracking-tight">
+          <div className="bg-background border border-border shadow-lg rounded-xl w-full max-w-lg max-h-[calc(100dvh-2rem)] sm:max-h-[calc(100dvh-3.5rem)] flex flex-col relative animate-in fade-in zoom-in-95 duration-200 my-auto">
+            {/* Header fixo no topo do modal */}
+            <div className="flex items-start justify-between p-6 pb-4 border-b border-border/40 shrink-0">
+              <div className="pr-4">
+                <h2 id="dialog-title" className="text-xl font-semibold tracking-tight text-foreground">
                   Doar {item.description}
                 </h2>
                 <p className="text-sm text-muted-foreground mt-1">
                   Registre sua intenção de doação e efetue o pagamento com o código PIX exclusivo.
                 </p>
               </div>
+              <button
+                type="button"
+                onClick={handleClose}
+                className="p-1 -mr-2 -mt-1 text-muted-foreground hover:text-foreground transition-colors rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring shrink-0"
+                aria-label="Fechar"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Conteúdo rolável */}
+            <div className="p-6 pt-4 overflow-y-auto flex-1 overscroll-contain">
 
               {isSuccess ? (
                 <div className="space-y-5">

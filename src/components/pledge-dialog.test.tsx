@@ -284,5 +284,55 @@ describe('PledgeDialog Component', () => {
     fireEvent.click(screen.getByRole('button', { name: /fechar/i }));
     expect(screen.queryByRole('dialog')).toBeNull();
   });
+
+  it('closes dialog when clicking on the backdrop overlay', async () => {
+    render(
+      <PledgeDialog
+        item={fixedPriceItem}
+        {...campaignProps}
+      />
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /doar/i }));
+    const dialogOverlay = screen.getByRole('dialog');
+    expect(dialogOverlay).toBeDefined();
+
+    // Clicking directly on the overlay backdrop
+    fireEvent.click(dialogOverlay);
+    expect(screen.queryByRole('dialog')).toBeNull();
+  });
+
+  it('does not close dialog when clicking inside the dialog card', async () => {
+    render(
+      <PledgeDialog
+        item={fixedPriceItem}
+        {...campaignProps}
+      />
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /doar/i }));
+    expect(screen.getByRole('dialog')).toBeDefined();
+
+    // Clicking inside the modal (e.g. on the title)
+    fireEvent.click(screen.getByText('Doar Cesta Básica'));
+    expect(screen.getByRole('dialog')).toBeDefined();
+  });
+
+  it('locks body scroll when open and restores it when closed', async () => {
+    render(
+      <PledgeDialog
+        item={fixedPriceItem}
+        {...campaignProps}
+      />
+    );
+
+    expect(document.body.style.overflow).not.toBe('hidden');
+
+    fireEvent.click(screen.getByRole('button', { name: /doar/i }));
+    expect(document.body.style.overflow).toBe('hidden');
+
+    fireEvent.click(screen.getByRole('button', { name: /fechar/i }));
+    expect(document.body.style.overflow).not.toBe('hidden');
+  });
 });
 
